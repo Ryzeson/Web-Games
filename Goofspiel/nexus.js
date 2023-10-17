@@ -116,7 +116,7 @@ function drawCircle(centerX, centerY, radius, fillColor) {
 }
 
 function getCard(x, y) {
-    drawCircle(x, y, 2, "green");
+    // drawCircle(x, y, 2, "green");
     if (y > (playerStartingY) && y < (playerStartingY + cardHeight)) {
         let cardNum = Math.floor((x - startingX) / (cardWidth + spaceBetweenCards)); // Reverse formula for placing the cards initially
         if ((cardNum >= 1 && cardNum <= 13) && playerCards.includes(cardNum)) {

@@ -1,0 +1,1 @@
+This repository holds the code to the Web Games found on my website, which were developed to help me learn JavaScript.
