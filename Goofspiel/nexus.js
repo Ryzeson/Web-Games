@@ -199,8 +199,8 @@ function opTurn() {
 
 function opChooseCard() {
     // Default opponent strategy is to pick a random card
-    // let randomNum = Math.floor(Math.random() * opCards.length);
-    let randomNum = 0;
+    let randomNum = Math.floor(Math.random() * opCards.length);
+    // let randomNum = 0;
     return opCards[randomNum];
 }
 
