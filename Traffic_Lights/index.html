@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Lights!</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add Font Awesome CSS for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-md-10 pt-5">
+                <!-- <canvas style="background-color: #CFF5F1; width: 100%; height: auto;"></canvas> -->
+                <canvas height="300" width="400" style="background-color: #CFF5F1;"></canvas>
+            </div>
+            <div class="col-1"></div>
+        </div>
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-md-10 pt-1">
+                <div class="d-flex rules-div">
+                    <div class="d-flex players mr-2">
+                        <div class="player-box text-center current-player" id="p1">Player 1</div>
+                        <div class="player-box text-center" id="p2">Player 2</div>
+                    </div>
+                    <div class="rules-box">
+                        <div class="d-flex justify-content-left rules-heading">
+                            <!-- https://stackoverflow.com/questions/23873005/hide-div-by-default-and-show-it-on-click-with-bootstrap -->
+                            <div data-target="#rules" data-toggle="collapse" class="collapse-controller">How to play<i class="fas fa-caret-up ml-1"></i>
+                            </div>
+                            <!-- <div data-target="#controls" data-toggle="collapse">Controls</div> -->
+                        </div>
+                        <div id="rules" class="collapse"> <!-- use 'show' to have the content displayed be default-->
+                            On each turn, a player must click a cell on the game board. If the cell is empty,
+                            a green circle is placed in the cell. If the cell contains a green circle, it will be
+                            replaced by a yellow triangle. If the cell contains a yellow trianlge, it will be replaced
+                            by a
+                            red square. The object of the game is to be the first player to get 3 of
+                            the same shape/color in a row (vertically, horizontally, or diagonally).
+                        </div>
+                        <div class="d-flex justify-content-left rules-heading">
+                            <div data-target="#controls" data-toggle="collapse" class="collapse-controller">Controls<i class="fas fa-caret-up ml-1"></i></div>
+                        </div>
+                        <div id="controls" class="collapse">
+                            Click the cell you wish to activate.<br>
+                            Press the "R" key to reset the game.
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-1"></div>
+        </div>
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-md-10 pt-5">
+            </div>
+            <div class="col-1"></div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="scripts/nexus.js"></script>
+    <script src="scripts/ui.js"></script>
+</body>
+
+</html>
