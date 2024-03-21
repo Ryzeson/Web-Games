@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Name!</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Add Font Awesome CSS for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container pt-4">
+        <div class="row justify-content-center">
+            <div class="column" id="game-container">
+                <canvas id="game-canvas"></canvas>
+            </div>
+        </div>
+        <div class="row justify-content-center pt-3">
+            <div class="d-flex column pb-5" id="info-container">
+                <div class="ml-2 mr-2" id="rules-box">
+                    <div class="d-flex rules-heading">
+                        <!-- https://stackoverflow.com/questions/23873005/hide-div-by-default-and-show-it-on-click-with-bootstrap -->
+                        <div data-target="#rules" data-toggle="collapse" class="collapse-controller">
+                        <h2>How to play<i class="fas fa-caret-right ml-2"></i></h2>
+                        </div>
+                    </div>
+                    <div class="collapse" id="rules" > <!-- use 'show' to have the content displayed be default-->
+                        On each turn, a player must click a cell on the game board. If the cell is empty,
+                        a green circle is placed in the cell. If the cell contains a green circle, it will be
+                        replaced by a yellow triangle. If the cell contains a yellow trianlge, it will be replaced
+                        by a red square. The object of the game is to be the first player to get 3 of
+                        the same shape/color in a row (vertically, horizontally, or diagonally).
+                        <br><br>
+                        <h2 class="rules-heading">Controls</h2>
+                        Click the cell you wish to activate.<br>
+                        Press the "R" key to reset the game.
+                    </div>
+                </div>
+                <div class="d-flex players-box mr-2">
+                    <div class="d-flex justify-content-center align-items-center player-box text-center current-player" id="p1"><h2>Player 1</h2></div>
+                    <div class="d-flex justify-content-center align-items-center player-box text-center" id="p2"><h2>Player 2</h2></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="scripts/nexus.js"></script>
+    <script src="scripts/ui.js"></script>
+</body>
+
+</html>
