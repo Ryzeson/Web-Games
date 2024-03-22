@@ -23,13 +23,15 @@
         <div class="row justify-content-center pt-3">
             <div class="d-flex column pb-5" id="info-container">
                 <div class="ml-2 mr-2" id="rules-box">
-                    <div class="d-flex rules-heading">
+                    <div class="d-flex align-items-center justify-content-between">
                         <!-- https://stackoverflow.com/questions/23873005/hide-div-by-default-and-show-it-on-click-with-bootstrap -->
                         <div data-target="#rules" data-toggle="collapse" class="collapse-controller">
-                        <h2>How to play<i class="fas fa-caret-right ml-2"></i></h2>
+                            <h2 class="rules-heading">How to play<i class="fas fa-caret-right ml-2"></i></h2>
                         </div>
+                        <i class="fas fa-cog fa mr-3" data-toggle="modal" data-target="#settings-modal"
+                            id="settings-gear"></i>
                     </div>
-                    <div class="collapse" id="rules" > <!-- use 'show' to have the content displayed be default-->
+                    <div class="collapse" id="rules"> <!-- use 'show' to have the content displayed be default-->
                         On each turn, a player must click a cell on the game board. If the cell is empty,
                         a green circle is placed in the cell. If the cell contains a green circle, it will be
                         replaced by a yellow triangle. If the cell contains a yellow trianlge, it will be replaced
@@ -42,8 +44,39 @@
                     </div>
                 </div>
                 <div class="d-flex players-box mr-2">
-                    <div class="d-flex justify-content-center align-items-center player-box text-center current-player" id="p1"><h2>Player 1</h2></div>
-                    <div class="d-flex justify-content-center align-items-center player-box text-center" id="p2"><h2>Player 2</h2></div>
+                    <div class="d-flex justify-content-center align-items-center player-box text-center current-player"
+                        id="p1">
+                        <h2>Player 1</h2>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center player-box text-center" id="p2">
+                        <h2>Player 2</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <strong>Game Mode:</strong><br>
+                    <form id="settings-form">
+                        <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
+                        <br>
+                        <input type="radio" name="game_mode" value="pvc"> Player vs Computer
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="updateSettings()">Save
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

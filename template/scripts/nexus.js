@@ -59,6 +59,7 @@ const wins = [
 var curPlayer = 0;
 var gameOver = false;
 
+var gameMode = "pvp";
 
 // Canvas constants
 // New canvas width and height to match the DPR logic
@@ -221,6 +222,17 @@ for (let i = 1; i < nRows; i++)
 /*
     LISTENERS
 */
+
+function updateSettings() {
+    var form = $("#settings-form")[0];
+    var inputs = [...form.elements]; //https://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
+    inputs.forEach(input => {
+        if (input.checked)
+        gameMode = input.value;
+    })
+
+
+}
 
 function handleClick(e) {
     // var coord = getCell(e.clientX, e.clientY);
