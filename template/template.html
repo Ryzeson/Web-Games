@@ -26,10 +26,10 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <!-- https://stackoverflow.com/questions/23873005/hide-div-by-default-and-show-it-on-click-with-bootstrap -->
                         <div data-target="#rules" data-toggle="collapse" class="collapse-controller">
-                            <h2 class="rules-heading">How to play<i class="fas fa-caret-right ml-2"></i></h2>
+                            <h2 class="rules-heading info-interactable">How to play<i class="fas fa-caret-right ml-2"></i></h2>
                         </div>
-                        <i class="fas fa-cog fa mr-3" data-toggle="modal" data-target="#settings-modal"
-                            id="settings-gear"></i>
+                        <i class="fas fa-cog fa mr-3 info-interactable" data-toggle="modal" data-target="#options-modal"
+                            id="options-gear"></i>
                     </div>
                     <div class="collapse" id="rules"> <!-- use 'show' to have the content displayed be default-->
                         On each turn, a player must click a cell on the game board. If the cell is empty,
@@ -56,26 +56,26 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- options Modal -->
+    <div class="modal fade" id="options-modal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Settings</h5>
+                    <h5 class="modal-title">Options</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <strong>Game Mode:</strong><br>
-                    <form id="settings-form">
+                    <form id="options-form">
                         <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
                         <br>
                         <input type="radio" name="game_mode" value="pvc"> Player vs Computer
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="updateSettings()">Save
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="updateoptions()">Save
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>

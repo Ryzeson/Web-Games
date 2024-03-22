@@ -56,6 +56,15 @@ h2 {
     font-size: 1.3em;
 }
 
+.info-interactable:hover {
+    cursor: pointer;
+    color: var(--color4);
+}
+
+#options-gear {
+    font-size: 1.5rem;
+}
+
 /* .rules-heading {
     text-decoration: underline;
 } */
@@ -84,8 +93,4 @@ h2 {
 #p2 {
     border-radius: 0px 10px 10px 0px;
     border-left: 0px;
-}
-
-#settings-gear {
-    font-size: 1.5rem;
 }

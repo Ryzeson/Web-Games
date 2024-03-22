@@ -1,1 +1,1 @@
-This repository holds the code to the Web Games found on my website, which were developed to help me learn JavaScript.
+This repository holds the code to web games I developed to help me learn JavaScript. You can play them on my [website](https://www.ryzeson.org/games).
