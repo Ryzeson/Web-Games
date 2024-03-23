@@ -20,45 +20,47 @@ canvas.style.height = `${rect.height}px`;
 
 //////////////////////////
 //                      //
-//    Game constants    //
+//    Game Constants    //
 //                      //
 //////////////////////////
 const nCols = 4;
 const nRows = 3;
 
 const board = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
 ];
 
 const wins = [
     // Horizontal
-    [[0, 0], [0, 1], [0, 2]],
-    [[0, 1], [0, 2], [0, 3]],
-    [[1, 0], [1, 1], [1, 2]],
-    [[1, 1], [1, 2], [1, 3]],
-    [[2, 0], [2, 1], [2, 2]],
-    [[2, 1], [2, 2], [2, 3]],
+    [0, 1, 2],
+    [1, 2, 3],
+    [4, 5, 6],
+    [5, 6, 7],
+    [8, 9, 10],
+    [9, 10, 11],
     // Vertical
-    [[0, 0], [1, 0], [2, 0]],
-    [[0, 1], [1, 1], [2, 1]],
-    [[0, 2], [1, 2], [2, 2]],
-    [[0, 3], [1, 3], [2, 3]],
+    [0, 4, 8],
+    [1, 5, 9],
+    [2, 6, 10],
+    [3, 7, 11],
     // Diagonal
-    [[0, 0], [1, 1], [2, 2]],
-    [[0, 1], [1, 2], [2, 3]],
-    [[2, 0], [1, 1], [0, 2]],
-    [[2, 1], [1, 2], [0, 3]]
+    [0, 5, 10],
+    [1, 6, 11],
+    [2, 5, 8],
+    [3, 6, 9]
 ]
 
 var curPlayer = 0;
 var gameOver = false;
-var gameMode = "pvp"; // Can be "pvp" or "pvc"
+var gameMode = "pvc"; // "pvp" or "pvc"
+var cpuDifficulty = "hard";
+var cpuTurnTimeoutId;
 
 ////////////////////////////
 //                        //
-//    Canvas constants    //
+//    Canvas Constants    //
 //                        //
 ////////////////////////////
 // Set font size to match Bootstrap 4 default typography
@@ -81,16 +83,13 @@ window.onresize = () => {
 const cellHeight = cHeight / nRows;
 const cellWidth = cWidth / nCols;
 
-const GREEN = "green";
-const YELLOW = "yellow";
-const RED = "red";
+const CIRCLE_COLOR = "green";
+const TRIANGLE_COLOR = "yellow";
+const SQUARE_COLOR = "red";
 const BOARD_COLOR = "#D2D7DF";
+const LINE_COLOR = "black";
 const TEXT_BOX_COLOR = "#353535";
 const TEXT_BOX_TEXT_COLOR = "white";
-
-// Set circle properties
-const radius = 50;
-const fillColor = "blue";
 
 //////////////////////
 //                  //
@@ -125,41 +124,65 @@ function drawCircle(centerX, centerY, radius, fillColor) {
     ctx.closePath();
 }
 
-function drawShape(cellRow, cellCol) {
+function drawBoard() {
+    for (let i = 1; i < nCols; i++)
+        drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
+
+    for (let i = 1; i < nRows; i++)
+        drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
+}
+
+function resetGame() {
+    clearTimeout(cpuTurnTimeoutId);
+    ctx.fillStyle = BOARD_COLOR;
+    ctx.fillRect(0, 0, cellWidth * nCols, cellHeight * nRows);
+    for (cell in board) {
+        drawBoard();
+        board[cell] = 0;
+    }
+
+    gameOver = false;
+    curPlayer = 0;
+    $("#p1").addClass("current-player");
+    $("#p2").removeClass("current-player");
+}
+
+function activateCell(cell) {
     // 0 -> draw a circle
     // 1 -> draw a triangle
     // 2 -> draw a square
-    var boardPos = board[cellRow][cellCol];
+    var cellRow = Math.floor(cell / nCols);
+    var cellCol = cell % nCols;
+    var boardPos = board[cell];
     var centerX = (cellCol * cellWidth) + (cellWidth / 2);
     var centerY = (cellRow * cellHeight) + (cellHeight / 2);
     if (boardPos == 0) {
-        drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, GREEN);
+        drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, CIRCLE_COLOR);
     }
     else if (boardPos == 1) {
-        // Cheat for covering up previous circle: Draw a new one at the same spot
+        // Cheat for covering up previous circle: Draw a new (slightly bigger) one at the same spot
         drawCircle(centerX, centerY, (Math.min(cellWidth, cellHeight) / 3) + 1, BOARD_COLOR);
 
-        // Draw triangle
         var p1 = [(cellCol * cellWidth) + (cellWidth / 2), (cellRow * cellHeight) + (cellHeight / 6)];
         var p2 = [(cellCol * cellWidth) + (cellWidth / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
         var p3 = [(cellCol * cellWidth) + (cellWidth * 5 / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
-        drawTriangle(p1, p2, p3, YELLOW);
+        drawTriangle(p1, p2, p3, TRIANGLE_COLOR);
     }
     else if (boardPos == 2) {
         // we want the square to occupy 2/3 of the cell (1/6 gaps from the sides to the side of the square)
         var startX = (cellCol * cellWidth) + (cellWidth / 6);
         var startY = (cellRow * cellHeight) + (cellHeight / 6);
-        ctx.fillStyle = RED;
+        ctx.fillStyle = SQUARE_COLOR;
         ctx.fillRect(startX, startY, (cellWidth * 2) / 3, (cellHeight * 2) / 3);
     }
-    board[cellRow][cellCol]++;
+    board[cell]++;
 }
 
 function getCell(x, y) {
     // Use Math.floor to replicate integer division in JavaScript (https://stackoverflow.com/questions/4228356/how-to-perform-an-integer-division-and-separately-get-the-remainder-in-javascr)
     let row = Math.floor(y / (cHeight / nRows));
     let col = Math.floor(x / (cWidth / nCols));
-    return [row, col];
+    return (row * nCols) + col;
 }
 
 function changePlayer() {
@@ -170,14 +193,10 @@ function changePlayer() {
 function checkForWin() {
     for (let i = 0; i < wins.length; i++) {
         var winRow = wins[i];
-        if ((board[winRow[0][0]][winRow[0][1]] == board[winRow[1][0]][winRow[1][1]]) &&
-            (board[winRow[0][0]][winRow[0][1]] == board[winRow[2][0]][winRow[2][1]]) &&
-            (board[winRow[0][0]][winRow[0][1]] != 0)
-        ) {
-            gameOver = true;
-            displayWinner();
-        }
+        if ((board[winRow[0]] == board[winRow[1]]) && (board[winRow[0]] == board[winRow[2]]) && (board[winRow[0]] != 0))
+            return true;
     }
+    return false;
 }
 
 function displayWinner() {
@@ -203,39 +222,158 @@ function displayWinner() {
     ctx.fillText(text, textX, textY);
 }
 
-// Draw the board
-for (let i = 1; i < nCols; i++)
-    drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, "black", 2);
+function makeMove(cell) {
+    console.log(board);
+    console.log(cell);
+    changePlayer();
+    activateCell(cell);
+    if (checkForWin()) {
+        gameOver = true;
+        displayWinner();
+    }
+    else if (gameMode == "pvc" && curPlayer == 1) {
+        cpuTurn();
+    }
+    console.log(board);
+}
 
-for (let i = 1; i < nRows; i++)
-    drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, "black", 2);
+/////////////////////////////////
+//                             //
+//    Computer Player Logic    //
+//                             //
+/////////////////////////////////
 
+// All -> If there is a winning move, make it.
+// Easy ->  Play in a random spot
+// Hard -> Play in a random spot, unless this could allow the opponent to win on the next move
 
-/////////////////////
-//                 //
-//    Listeners    //
-//                 //
-/////////////////////
+function cpuTurn() {
+    var possibleMoves = calculatePossibleMoves();
+    var chosenCell;
+    for (let move of possibleMoves) {
+        board[move]++;
+        if (checkForWin())
+            chosenCell = move;
+        board[move]--;
+    }
+    if (!chosenCell) {
+        switch (cpuDifficulty) {
+            case ("easy"):
+                var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+                var chosenCell = possibleMoves[randomIndex];
+                break;
+            case ("hard"):
+                var potentialMoves = [...possibleMoves];
+                for (let move of possibleMoves) {
+                    board[move]++;
+                    var humanPossibleMoves = calculatePossibleMoves();
+                    for (let humanMove of humanPossibleMoves) {
+                        board[humanMove]++;
+                        if (checkForWin()) {
+                            potentialMoves.splice(potentialMoves.indexOf(move), 1);
+                            board[humanMove]--;
+                            break;
+                        }
+                        board[humanMove]--;
+                    }
+                    board[move]--;
+                }
+                if (potentialMoves.length == 0) {
+                    var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+                    var chosenCell = possibleMoves[randomIndex];
+                }
+                else {
+                    var randomIndex = Math.floor(Math.random() * potentialMoves.length);
+                    var chosenCell = potentialMoves[randomIndex];
+                }
+                break;
+            default:
+                console.log("CPU difficulty is not one of the options!")
+        }
+    }
+
+    cpuTurnTimeoutId = setTimeout(() => {
+        makeMove(chosenCell)
+    }, 1100);
+}
+
+function calculatePossibleMoves() {
+    var possibleMoves = [];
+    for (i in board) {
+        if (board[i] < 3)
+            possibleMoves.push(i);
+    }
+    console.log("Possible moves" + possibleMoves);
+    return possibleMoves;
+}
+
+//////////////////////////
+//                      //
+//    Listeners + UI    //
+//                      //
+//////////////////////////
+$("canvas").on("click", handleClick);
+
 function handleClick(e) {
     const clickX = e.clientX - boundingRect.left;
     const clickY = e.clientY - boundingRect.top;
-    if (!gameOver) {
+    if (!gameOver && (gameMode == "pvp" || (gameMode == "pvc" && curPlayer == 0))) {
         var cell = getCell(clickX, clickY);
-        if (board[cell[0]][cell[1]] < 3) {
-            changePlayer();
-            drawShape(cell[0], cell[1]);
-            checkForWin();
+        if (board[cell] < 3) {
+            makeMove(cell);
         }
     }
 }
 
-$("canvas").on("click", handleClick);
-
-function updateSettings() {
-    var form = $("#settings-form")[0];
-    var inputs = [...form.elements]; //https://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
-    inputs.forEach(input => {
-        if (input.checked)
-            gameMode = input.value;
-    })
+function optionsListener() {
+    var d = getCheckedValue("game_mode");
+    console.log("Checked value: " + d)
+    if(getCheckedValue("game_mode") != gameMode)
+        $(".options-warning").removeClass("invisible");
+    else
+        $(".options-warning").addClass("invisible");
 }
+
+function updateOptions() {
+    cpuDifficulty = getCheckedValue("cpu_difficulty");
+    var newGameMode = getCheckedValue("game_mode");
+    if (newGameMode != gameMode)
+        resetGame();
+    gameMode = newGameMode;
+    updatePlayerLabels();
+
+    $(".options-warning").addClass("invisible");
+}
+
+function getCheckedValue(groupName) {
+    var form = $("#options-form")[0];
+    var inputs = [...form.elements[groupName]]; //https://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
+    var checkedValue;
+    inputs.forEach(input => {
+        if (input.checked) {
+            checkedValue = input.value;
+        }
+    })
+    return checkedValue;
+}
+
+function updatePlayerLabels() {
+    var p2Label = $("#p2-label");
+    if (gameMode == "pvc")
+        p2Label.text("Computer");
+    else
+        p2Label.text("Player 2");
+}
+
+function addPlayAgainButton() {
+    
+}
+
+$(document).keypress(e => {
+    if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's' )
+        $("#options-modal").modal("toggle");
+    else if (e.key.toLowerCase() == 'r')
+        resetGame();
+});
+
+drawBoard();

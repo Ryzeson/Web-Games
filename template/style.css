@@ -22,6 +22,14 @@ body {
     width: 800px;
 }
 
+/* .column-left {
+    width: 500px;
+}
+
+.column-right {
+    width: 300px;
+} */
+
 #game-canvas {
     height: 100%;
     width: 100%;
@@ -93,4 +101,8 @@ h2 {
 #p2 {
     border-radius: 0px 10px 10px 0px;
     border-left: 0px;
+}
+
+.options-warning {
+    color: red;
 }

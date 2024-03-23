@@ -6,10 +6,3 @@ $(".collapse-controller").on("click", e => {
     $(arrowIcon).toggleClass("fa-caret-right");
     $(arrowIcon).toggleClass("fa-caret-down");
 })
-
-$(document).keypress(e => {
-    if (e.key == 's')
-        $("#options-modal").modal("toggle");
-    else if (e.key == 'r')
-        window.location.reload();
-});

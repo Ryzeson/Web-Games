@@ -16,17 +16,18 @@
 <body>
     <div class="container pt-4">
         <div class="row justify-content-center">
-            <div class="column" id="game-container">
+            <div class="column d-flex justify-content-center" id="game-container">
                 <canvas id="game-canvas"></canvas>
             </div>
         </div>
         <div class="row justify-content-center pt-3">
-            <div class="d-flex column pb-5" id="info-container">
+            <div class="d-flex column" id="info-container">
                 <div class="ml-2 mr-2" id="rules-box">
                     <div class="d-flex align-items-center justify-content-between">
                         <!-- https://stackoverflow.com/questions/23873005/hide-div-by-default-and-show-it-on-click-with-bootstrap -->
                         <div data-target="#rules" data-toggle="collapse" class="collapse-controller">
-                            <h2 class="rules-heading info-interactable">How to play<i class="fas fa-caret-right ml-2"></i></h2>
+                            <h2 class="rules-heading info-interactable">How to play<i
+                                    class="fas fa-caret-right ml-2"></i></h2>
                         </div>
                         <i class="fas fa-cog fa mr-3 info-interactable" data-toggle="modal" data-target="#options-modal"
                             id="options-gear"></i>
@@ -39,24 +40,30 @@
                         the same shape/color in a row (vertically, horizontally, or diagonally).
                         <br><br>
                         <h2 class="rules-heading">Controls</h2>
-                        Click the cell you wish to activate.<br>
-                        Press the "R" key to reset the game.
+                        Click a cell to activate it.<br>
+                        Press the "R" key to reset the game.<br>
+                        Press the "O" key to toggle the options menu.<br>
                     </div>
                 </div>
                 <div class="d-flex players-box mr-2">
                     <div class="d-flex justify-content-center align-items-center player-box text-center current-player"
                         id="p1">
-                        <h2>Player 1</h2>
+                        <h2 id="p1-label">Player 1</h2>
                     </div>
                     <div class="d-flex justify-content-center align-items-center player-box text-center" id="p2">
-                        <h2>Player 2</h2>
+                        <h2 id="p2-label">Player 2</h2>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- <div class="row justify-content-center pt-3">
+            <div class="d-flex column" id="additional-buttons-container">
+                <button class="btn-primary ml-auto">Play Again!</button>
+            </div>
+        </div> -->
     </div>
 
-    <!-- options Modal -->
+    <!-- options modal -->
     <div class="modal fade" id="options-modal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -67,16 +74,24 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <strong>Game Mode:</strong><br>
-                    <form id="options-form">
-                        <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
+                    <form id="options-form" onchange="optionsListener()">
+                        <strong>Game Mode:</strong><br>
+                        <input type="radio" name="game_mode" value="pvp"> Player vs Player
                         <br>
-                        <input type="radio" name="game_mode" value="pvc"> Player vs Computer
+                        <input type="radio" name="game_mode" value="pvc" checked> Player vs Computer
+                        <br>
+                        <div class="hidden" id="cpu-difficulty-section">
+                            <strong>Computer Difficulty:</strong><br>
+                            <input type="radio" name="cpu_difficulty" value="easy"> Easy
+                            <br>
+                            <input type="radio" name="cpu_difficulty" value="hard" checked> Hard
+                        </div>
                     </form>
+                    <h2 class="options-warning invisible">Changing the game mode will reset your current game!</h2>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="updateoptions()">Save
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="updateOptions()">Save
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
