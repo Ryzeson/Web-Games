@@ -22,13 +22,13 @@ body {
     width: 800px;
 }
 
-/* .column-left {
-    width: 500px;
+.column-left {
+    width: 60%;
 }
 
 .column-right {
-    width: 300px;
-} */
+    width: 40%;
+}
 
 #game-canvas {
     height: 100%;
@@ -43,13 +43,15 @@ body {
     width: 100%;
 }
 
-#info-container {
-    height: auto;
-    /* background-color: lightblue; */
+.info-container-left {
+    width: 60%;
+}
+
+.info-container-right {
+    width: 40%;
 }
 
 #rules-box {
-    width: 60%;
     color: rgb(239, 231, 231);
 }
 
@@ -77,8 +79,8 @@ h2 {
     text-decoration: underline;
 } */
 
-.players-box {
-    width: 40%;
+.players-box, additional-buttons-box {
+    width: 100%;
 }
 
 .player-box {
@@ -105,4 +107,11 @@ h2 {
 
 .options-warning {
     color: red;
+}
+
+#credits {
+    color: white;
+    /* text-decoration: underline; */
+    opacity: 80%;
+    font-size: .8rem;
 }

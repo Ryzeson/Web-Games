@@ -52,11 +52,23 @@ const wins = [
     [3, 6, 9]
 ]
 
+// https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
+const Game_Modes = Object.freeze({
+    PVP: "pvp",
+    PVC: "pvc"
+});
+
+const Difficulties = Object.freeze({
+    EASY: "easy",
+    MEDIUM:  "medium",
+    HARD: "hard"
+});
+
 var curPlayer = 0;
 var gameOver = false;
-var gameMode = "pvc"; // "pvp" or "pvc"
-var cpuDifficulty = "hard";
-var cpuTurnTimeoutId;
+var gameMode = Game_Modes.PVP;
+var cpuDifficulty = Difficulties.EASY;
+var cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
 
 ////////////////////////////
 //                        //
@@ -83,13 +95,14 @@ window.onresize = () => {
 const cellHeight = cHeight / nRows;
 const cellWidth = cWidth / nCols;
 
-const CIRCLE_COLOR = "green";
-const TRIANGLE_COLOR = "yellow";
-const SQUARE_COLOR = "red";
 const BOARD_COLOR = "#D2D7DF";
 const LINE_COLOR = "black";
 const TEXT_BOX_COLOR = "#353535";
 const TEXT_BOX_TEXT_COLOR = "white";
+
+const CIRCLE_COLOR = "green";
+const TRIANGLE_COLOR = "yellow";
+const SQUARE_COLOR = "red";
 
 //////////////////////
 //                  //
@@ -134,17 +147,18 @@ function drawBoard() {
 
 function resetGame() {
     clearTimeout(cpuTurnTimeoutId);
+    gameOver = false;
+    curPlayer = 0;
+    $("#p1").addClass("current-player");
+    $("#p2").removeClass("current-player");
+    $("#play-again-button").addClass("invisible");
+
     ctx.fillStyle = BOARD_COLOR;
     ctx.fillRect(0, 0, cellWidth * nCols, cellHeight * nRows);
     for (cell in board) {
         drawBoard();
         board[cell] = 0;
     }
-
-    gameOver = false;
-    curPlayer = 0;
-    $("#p1").addClass("current-player");
-    $("#p2").removeClass("current-player");
 }
 
 function activateCell(cell) {
@@ -200,9 +214,9 @@ function checkForWin() {
 }
 
 function displayWinner() {
-    changePlayer();
-
     let text = 'Player ' + (curPlayer + 1) + ' wins!';
+    if (gameMode == "pvc" && curPlayer == 1)
+        text = 'Computer wins!';
     let textWidth = ctx.measureText(text).width;
     let textHeight = ctx.measureText('M').width; // cheat to get height
     let textX = (cWidth / 2) - textWidth / 2;
@@ -223,18 +237,20 @@ function displayWinner() {
 }
 
 function makeMove(cell) {
-    console.log(board);
-    console.log(cell);
-    changePlayer();
     activateCell(cell);
-    if (checkForWin()) {
-        gameOver = true;
-        displayWinner();
+    if (checkForWin())
+        endGame();
+    else {
+        changePlayer();
+        if (gameMode == "pvc" && curPlayer == 1)
+            cpuTurn();
     }
-    else if (gameMode == "pvc" && curPlayer == 1) {
-        cpuTurn();
-    }
-    console.log(board);
+}
+
+function endGame() {
+    gameOver = true;
+    displayWinner();
+    addPlayAgainButton();
 }
 
 /////////////////////////////////
@@ -258,11 +274,11 @@ function cpuTurn() {
     }
     if (!chosenCell) {
         switch (cpuDifficulty) {
-            case ("easy"):
+            case (Difficulties.EASY):
                 var randomIndex = Math.floor(Math.random() * possibleMoves.length);
                 var chosenCell = possibleMoves[randomIndex];
                 break;
-            case ("hard"):
+            case (Difficulties.HARD):
                 var potentialMoves = [...possibleMoves];
                 for (let move of possibleMoves) {
                     board[move]++;
@@ -288,7 +304,7 @@ function cpuTurn() {
                 }
                 break;
             default:
-                console.log("CPU difficulty is not one of the options!")
+                console.error("CPU difficulty is not one of the options!")
         }
     }
 
@@ -303,7 +319,6 @@ function calculatePossibleMoves() {
         if (board[i] < 3)
             possibleMoves.push(i);
     }
-    console.log("Possible moves" + possibleMoves);
     return possibleMoves;
 }
 
@@ -315,9 +330,9 @@ function calculatePossibleMoves() {
 $("canvas").on("click", handleClick);
 
 function handleClick(e) {
-    const clickX = e.clientX - boundingRect.left;
-    const clickY = e.clientY - boundingRect.top;
-    if (!gameOver && (gameMode == "pvp" || (gameMode == "pvc" && curPlayer == 0))) {
+    if (!gameOver && (gameMode == Game_Modes.PVP || (gameMode == Game_Modes.PVC && curPlayer == 0))) {
+        const clickX = e.clientX - boundingRect.left;
+        const clickY = e.clientY - boundingRect.top;
         var cell = getCell(clickX, clickY);
         if (board[cell] < 3) {
             makeMove(cell);
@@ -326,9 +341,7 @@ function handleClick(e) {
 }
 
 function optionsListener() {
-    var d = getCheckedValue("game_mode");
-    console.log("Checked value: " + d)
-    if(getCheckedValue("game_mode") != gameMode)
+    if (getCheckedValue("game_mode") != gameMode)
         $(".options-warning").removeClass("invisible");
     else
         $(".options-warning").addClass("invisible");
@@ -359,18 +372,18 @@ function getCheckedValue(groupName) {
 
 function updatePlayerLabels() {
     var p2Label = $("#p2-label");
-    if (gameMode == "pvc")
+    if (gameMode == Game_Modes.PVC)
         p2Label.text("Computer");
     else
         p2Label.text("Player 2");
 }
 
 function addPlayAgainButton() {
-    
+    $("#play-again-button").removeClass("invisible");
 }
 
 $(document).keypress(e => {
-    if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's' )
+    if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's')
         $("#options-modal").modal("toggle");
     else if (e.key.toLowerCase() == 'r')
         resetGame();

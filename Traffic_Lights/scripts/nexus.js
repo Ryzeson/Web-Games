@@ -1,12 +1,8 @@
 // Get the canvas element and its context
 const canvas = $("canvas")[0];
-// canvas.width = window.innerWidth;
-// canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
 
-// Fix the blurriness issue on HD screens
-// https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
-////////////////////////////////////////
+// Fix the blurriness issue on HD screens (https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas)
 // Get the DPR and size of the canvas
 const dpr = window.devicePixelRatio;
 const rect = canvas.getBoundingClientRect();
@@ -21,46 +17,67 @@ ctx.scale(dpr, dpr);
 // Set the "drawn" size of the canvas
 canvas.style.width = `${rect.width}px`;
 canvas.style.height = `${rect.height}px`;
-////////////////////////////////////////
 
-// Set font size
-ctx.font = "48px serif";
-
-// Game constants
+//////////////////////////
+//                      //
+//    Game Constants    //
+//                      //
+//////////////////////////
 const nCols = 4;
 const nRows = 3;
 
 const board = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
-  ];
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
+];
 
 const wins = [
     // Horizontal
-    [[0,0], [0,1], [0,2]],
-    [[0,1], [0,2], [0,3]],
-    [[1,0], [1,1], [1,2]],
-    [[1,1], [1,2], [1,3]],
-    [[2,0], [2,1], [2,2]],
-    [[2,1], [2,2], [2,3]],
+    [0, 1, 2],
+    [1, 2, 3],
+    [4, 5, 6],
+    [5, 6, 7],
+    [8, 9, 10],
+    [9, 10, 11],
     // Vertical
-    [[0,0], [1,0], [2,0]],
-    [[0,1], [1,1], [2,1]],
-    [[0,2], [1,2], [2,2]],
-    [[0,3], [1,3], [2,3]],
-    // Diaganol
-    [[0,0], [1,1], [2,2]],
-    [[0,1], [1,2], [2,3]],
-    [[2,0], [1,1], [0,2]],
-    [[2,1], [1,2], [0,3]]
+    [0, 4, 8],
+    [1, 5, 9],
+    [2, 6, 10],
+    [3, 7, 11],
+    // Diagonal
+    [0, 5, 10],
+    [1, 6, 11],
+    [2, 5, 8],
+    [3, 6, 9]
 ]
+
+// https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
+const Game_Modes = Object.freeze({
+    PVP: "pvp",
+    PVC: "pvc"
+});
+
+const Difficulties = Object.freeze({
+    EASY: "easy",
+    MEDIUM:  "medium",
+    HARD: "hard"
+});
 
 var curPlayer = 0;
 var gameOver = false;
+var gameMode = Game_Modes.PVP;
+var cpuDifficulty = Difficulties.EASY;
+var cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
 
+////////////////////////////
+//                        //
+//    Canvas Constants    //
+//                        //
+////////////////////////////
+// Set font size to match Bootstrap 4 default typography
+ctx.font = '48px "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif';
 
-// Canvas constants
 // New canvas width and height to match the DPR logic
 const cWidth = canvas.width / dpr;
 const cHeight = canvas.height / dpr;
@@ -71,33 +88,33 @@ const centerY = cHeight / 2;
 // Gets the location of the canvas on the entire screen
 // https://stackoverflow.com/questions/70519964/how-to-get-topleft-topright-bottomleft-bottomright-and-centretop-position-of
 var boundingRect = canvas.getBoundingClientRect();
-var canvasTop = boundingRect.top;
-var canvasRight = boundingRect.right;
-var canvasBottom = boundingRect.bottom;
-var canvasLeft = boundingRect.left;
+window.onresize = () => {
+    boundingRect = canvas.getBoundingClientRect();
+};
 
 const cellHeight = cHeight / nRows;
 const cellWidth = cWidth / nCols;
 
-const GREEN = "green";
-const YELLOW = "yellow";
-const RED = "red";
-const BOARD_COLOR = "#CFF5F1";
-const TEXT_BOX_COLOR = 'rgba(208, 211, 218, 0.8)';
+const BOARD_COLOR = "#D2D7DF";
+const LINE_COLOR = "black";
+const TEXT_BOX_COLOR = "#353535";
+const TEXT_BOX_TEXT_COLOR = "white";
 
-// Set circle properties
-const radius = 50;
-const fillColor = "blue";
+const CIRCLE_COLOR = "green";
+const TRIANGLE_COLOR = "yellow";
+const SQUARE_COLOR = "red";
 
-
-
-// Functions
+//////////////////////
+//                  //
+//    Game Logic    //
+//                  //
+//////////////////////
 function drawLine(startX, startY, endX, endY, lineColor, lineWidth) {
-    ctx.beginPath(); 
-    ctx.moveTo(startX, startY); 
-    ctx.lineTo(endX, endY);
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
     ctx.stroke(); // Actually draw the line
     ctx.closePath();
 }
@@ -113,56 +130,73 @@ function drawTriangle(p1, p2, p3, fillColor) {
 }
 
 function drawCircle(centerX, centerY, radius, fillColor) {
+    ctx.fillStyle = fillColor;
     ctx.beginPath(); // Begin a new path
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); // Define the circle
-    ctx.fillStyle = fillColor;
     ctx.fill();
     ctx.closePath();
 }
 
-function drawShape(cellRow, cellCol) {
+function drawBoard() {
+    for (let i = 1; i < nCols; i++)
+        drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
+
+    for (let i = 1; i < nRows; i++)
+        drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
+}
+
+function resetGame() {
+    clearTimeout(cpuTurnTimeoutId);
+    gameOver = false;
+    curPlayer = 0;
+    $("#p1").addClass("current-player");
+    $("#p2").removeClass("current-player");
+    $("#play-again-button").addClass("invisible");
+
+    ctx.fillStyle = BOARD_COLOR;
+    ctx.fillRect(0, 0, cellWidth * nCols, cellHeight * nRows);
+    for (cell in board) {
+        drawBoard();
+        board[cell] = 0;
+    }
+}
+
+function activateCell(cell) {
     // 0 -> draw a circle
     // 1 -> draw a triangle
     // 2 -> draw a square
-    var boardPos = board[cellRow][cellCol];
+    var cellRow = Math.floor(cell / nCols);
+    var cellCol = cell % nCols;
+    var boardPos = board[cell];
+    var centerX = (cellCol * cellWidth) + (cellWidth / 2);
+    var centerY = (cellRow * cellHeight) + (cellHeight / 2);
     if (boardPos == 0) {
-        var centerX = (cellCol * cellWidth) + (cellWidth / 2);
-        var centerY = (cellRow * cellHeight) + (cellHeight / 2);
-        drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, GREEN);
-        board[cellRow][cellCol]++;
+        drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, CIRCLE_COLOR);
     }
     else if (boardPos == 1) {
-        // Cheat for covering up previous circle: Draw a new one at the same spot
-        var centerX = (cellCol * cellWidth) + (cellWidth / 2);
-        var centerY = (cellRow * cellHeight) + (cellHeight / 2);
+        // Cheat for covering up previous circle: Draw a new (slightly bigger) one at the same spot
         drawCircle(centerX, centerY, (Math.min(cellWidth, cellHeight) / 3) + 1, BOARD_COLOR);
 
-        // Draw triangle
         var p1 = [(cellCol * cellWidth) + (cellWidth / 2), (cellRow * cellHeight) + (cellHeight / 6)];
         var p2 = [(cellCol * cellWidth) + (cellWidth / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
         var p3 = [(cellCol * cellWidth) + (cellWidth * 5 / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
-        drawTriangle(p1, p2, p3, YELLOW);
-        board[cellRow][cellCol]++;
+        drawTriangle(p1, p2, p3, TRIANGLE_COLOR);
     }
     else if (boardPos == 2) {
         // we want the square to occupy 2/3 of the cell (1/6 gaps from the sides to the side of the square)
         var startX = (cellCol * cellWidth) + (cellWidth / 6);
         var startY = (cellRow * cellHeight) + (cellHeight / 6);
-        ctx.fillStyle = RED;
+        ctx.fillStyle = SQUARE_COLOR;
         ctx.fillRect(startX, startY, (cellWidth * 2) / 3, (cellHeight * 2) / 3);
-        board[cellRow][cellCol]++;
     }
-    console.log("Finished drawing shape");
+    board[cell]++;
 }
 
 function getCell(x, y) {
-    let row;
-    let col;
-    // Use Math.floor to replicate integer division in JavaScript
-    // https://stackoverflow.com/questions/4228356/how-to-perform-an-integer-division-and-separately-get-the-remainder-in-javascr
-    row = Math.floor(y / (cHeight / nRows));
-    col = Math.floor(x / (cWidth / nCols));
-    return [row, col];
+    // Use Math.floor to replicate integer division in JavaScript (https://stackoverflow.com/questions/4228356/how-to-perform-an-integer-division-and-separately-get-the-remainder-in-javascr)
+    let row = Math.floor(y / (cHeight / nRows));
+    let col = Math.floor(x / (cWidth / nCols));
+    return (row * nCols) + col;
 }
 
 function changePlayer() {
@@ -173,19 +207,16 @@ function changePlayer() {
 function checkForWin() {
     for (let i = 0; i < wins.length; i++) {
         var winRow = wins[i];
-        if ((board[winRow[0][0]][winRow[0][1]] == board[winRow[1][0]][winRow[1][1]]) &&
-        (board[winRow[0][0]][winRow[0][1]] == board[winRow[2][0]][winRow[2][1]]) &&
-        (board[winRow[0][0]][winRow[0][1]] != 0)
-        ) {
-            gameOver = true;
+        if ((board[winRow[0]] == board[winRow[1]]) && (board[winRow[0]] == board[winRow[2]]) && (board[winRow[0]] != 0))
             return true;
-        }
     }
     return false;
 }
 
 function displayWinner() {
     let text = 'Player ' + (curPlayer + 1) + ' wins!';
+    if (gameMode == "pvc" && curPlayer == 1)
+        text = 'Computer wins!';
     let textWidth = ctx.measureText(text).width;
     let textHeight = ctx.measureText('M').width; // cheat to get height
     let textX = (cWidth / 2) - textWidth / 2;
@@ -199,56 +230,163 @@ function displayWinner() {
     // Draw the box first
     ctx.fillStyle = TEXT_BOX_COLOR;
     ctx.fillRect(textBoxX, textBoxY, textBoxWidth, textBoxHeight);
-    // ctx.fill();
 
     // Then draw the text
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = TEXT_BOX_TEXT_COLOR;
     ctx.fillText(text, textX, textY);
-
-    console.log("Finished displaying winner");
 }
 
-// Draw the board
-for (let i = 1; i < nCols; i++)
-    drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, "black", 2);
-
-for (let i = 1; i < nRows; i++)
-    drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, "black", 2);
-
-/*
-    LISTENERS
-*/
-
-function handleClick(e) {
-    // var coord = getCell(e.clientX, e.clientY);
-    const clickX = e.clientX - canvasLeft;
-    const clickY = e.clientY - canvasTop;
-    console.log("X: " + e.clientX + ", Y: " +  e.clientY);
-    if (!gameOver) {
-        var cell = getCell(clickX, clickY);
-        console.log(cell);
-        console.log(board[cell[0]][cell[1]]);
-        drawShape(cell[0], cell[1]);
-        if(checkForWin())
-            displayWinner();
-        else
-            if (board[cell[0]][cell[1]] < 3)    
-                changePlayer();
+function makeMove(cell) {
+    activateCell(cell);
+    if (checkForWin())
+        endGame();
+    else {
+        changePlayer();
+        if (gameMode == "pvc" && curPlayer == 1)
+            cpuTurn();
     }
 }
 
+function endGame() {
+    gameOver = true;
+    displayWinner();
+    addPlayAgainButton();
+}
+
+/////////////////////////////////
+//                             //
+//    Computer Player Logic    //
+//                             //
+/////////////////////////////////
+
+// All -> If there is a winning move, make it.
+// Easy ->  Play in a random spot
+// Hard -> Play in a random spot, unless this could allow the opponent to win on the next move
+
+function cpuTurn() {
+    var possibleMoves = calculatePossibleMoves();
+    var chosenCell;
+    for (let move of possibleMoves) {
+        board[move]++;
+        if (checkForWin())
+            chosenCell = move;
+        board[move]--;
+    }
+    if (!chosenCell) {
+        switch (cpuDifficulty) {
+            case (Difficulties.EASY):
+                var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+                var chosenCell = possibleMoves[randomIndex];
+                break;
+            case (Difficulties.HARD):
+                var potentialMoves = [...possibleMoves];
+                for (let move of possibleMoves) {
+                    board[move]++;
+                    var humanPossibleMoves = calculatePossibleMoves();
+                    for (let humanMove of humanPossibleMoves) {
+                        board[humanMove]++;
+                        if (checkForWin()) {
+                            potentialMoves.splice(potentialMoves.indexOf(move), 1);
+                            board[humanMove]--;
+                            break;
+                        }
+                        board[humanMove]--;
+                    }
+                    board[move]--;
+                }
+                if (potentialMoves.length == 0) {
+                    var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+                    var chosenCell = possibleMoves[randomIndex];
+                }
+                else {
+                    var randomIndex = Math.floor(Math.random() * potentialMoves.length);
+                    var chosenCell = potentialMoves[randomIndex];
+                }
+                break;
+            default:
+                console.error("CPU difficulty is not one of the options!")
+        }
+    }
+
+    cpuTurnTimeoutId = setTimeout(() => {
+        makeMove(chosenCell)
+    }, 1100);
+}
+
+function calculatePossibleMoves() {
+    var possibleMoves = [];
+    for (i in board) {
+        if (board[i] < 3)
+            possibleMoves.push(i);
+    }
+    return possibleMoves;
+}
+
+//////////////////////////
+//                      //
+//    Listeners + UI    //
+//                      //
+//////////////////////////
 $("canvas").on("click", handleClick);
 
-onresize = (event) => {
-    boundingRect = canvas.getBoundingClientRect();
-    canvasTop = boundingRect.top;
-    canvasRight = boundingRect.right;
-    canvasBottom = boundingRect.bottom;
-    canvasLeft = boundingRect.left;
-};
+function handleClick(e) {
+    if (!gameOver && (gameMode == Game_Modes.PVP || (gameMode == Game_Modes.PVC && curPlayer == 0))) {
+        const clickX = e.clientX - boundingRect.left;
+        const clickY = e.clientY - boundingRect.top;
+        var cell = getCell(clickX, clickY);
+        if (board[cell] < 3) {
+            makeMove(cell);
+        }
+    }
+}
 
-// Reset game
-$(document).keypress(function(e){
-    if (e.key == 'r')
-        window.location.reload();
+function optionsListener() {
+    if (getCheckedValue("game_mode") != gameMode)
+        $(".options-warning").removeClass("invisible");
+    else
+        $(".options-warning").addClass("invisible");
+}
+
+function updateOptions() {
+    cpuDifficulty = getCheckedValue("cpu_difficulty");
+    var newGameMode = getCheckedValue("game_mode");
+    if (newGameMode != gameMode)
+        resetGame();
+    gameMode = newGameMode;
+    updatePlayerLabels();
+
+    $(".options-warning").addClass("invisible");
+}
+
+function getCheckedValue(groupName) {
+    var form = $("#options-form")[0];
+    var inputs = [...form.elements[groupName]]; //https://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
+    var checkedValue;
+    inputs.forEach(input => {
+        if (input.checked) {
+            checkedValue = input.value;
+        }
+    })
+    return checkedValue;
+}
+
+function updatePlayerLabels() {
+    var p2Label = $("#p2-label");
+    if (gameMode == Game_Modes.PVC)
+        p2Label.text("Computer");
+    else
+        p2Label.text("Player 2");
+}
+
+function addPlayAgainButton() {
+    $("#play-again-button").removeClass("invisible");
+}
+
+$(document).keypress(e => {
+    if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's')
+        $("#options-modal").modal("toggle");
+    else if (e.key.toLowerCase() == 'r')
+        resetGame();
 });
+
+drawBoard();
