@@ -1,392 +1,257 @@
-// Get the canvas element and its context
-const canvas = $("canvas")[0];
-const ctx = canvas.getContext("2d");
+class TrafficLights extends AbstractGame {
 
-// Fix the blurriness issue on HD screens (https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas)
-// Get the DPR and size of the canvas
-const dpr = window.devicePixelRatio;
-const rect = canvas.getBoundingClientRect();
+    constructor() {
+        super();
+        //////////////////////////
+        //                      //
+        //    Game Constants    //
+        //                      //
+        //////////////////////////
+        this.nCols = 4;
+        this.nRows = 3;
 
-// Set the "actual" size of the canvas
-canvas.width = rect.width * dpr;
-canvas.height = rect.height * dpr;
+        this.board = [
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0
+        ];
 
-// Scale the context to ensure correct drawing operations
-ctx.scale(dpr, dpr);
+        this.wins = [
+            // Horizontal
+            [0, 1, 2],
+            [1, 2, 3],
+            [4, 5, 6],
+            [5, 6, 7],
+            [8, 9, 10],
+            [9, 10, 11],
+            // Vertical
+            [0, 4, 8],
+            [1, 5, 9],
+            [2, 6, 10],
+            [3, 7, 11],
+            // Diagonal
+            [0, 5, 10],
+            [1, 6, 11],
+            [2, 5, 8],
+            [3, 6, 9]
+        ]
 
-// Set the "drawn" size of the canvas
-canvas.style.width = `${rect.width}px`;
-canvas.style.height = `${rect.height}px`;
+        ////////////////////////////
+        //                        //
+        //    Canvas Constants    //
+        //                        //
+        ////////////////////////////
+        this.cellHeight = this.cHeight / this.nRows;
+        this.cellWidth = this.cWidth / this.nCols;
 
-//////////////////////////
-//                      //
-//    Game Constants    //
-//                      //
-//////////////////////////
-const nCols = 4;
-const nRows = 3;
-
-const board = [
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0
-];
-
-const wins = [
-    // Horizontal
-    [0, 1, 2],
-    [1, 2, 3],
-    [4, 5, 6],
-    [5, 6, 7],
-    [8, 9, 10],
-    [9, 10, 11],
-    // Vertical
-    [0, 4, 8],
-    [1, 5, 9],
-    [2, 6, 10],
-    [3, 7, 11],
-    // Diagonal
-    [0, 5, 10],
-    [1, 6, 11],
-    [2, 5, 8],
-    [3, 6, 9]
-]
-
-// https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
-const Game_Modes = Object.freeze({
-    PVP: "pvp",
-    PVC: "pvc"
-});
-
-const Difficulties = Object.freeze({
-    EASY: "easy",
-    MEDIUM:  "medium",
-    HARD: "hard"
-});
-
-var curPlayer = 0;
-var gameOver = false;
-var gameMode = Game_Modes.PVP;
-var cpuDifficulty = Difficulties.EASY;
-var cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
-
-////////////////////////////
-//                        //
-//    Canvas Constants    //
-//                        //
-////////////////////////////
-// Set font size to match Bootstrap 4 default typography
-ctx.font = '48px "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif';
-
-// New canvas width and height to match the DPR logic
-const cWidth = canvas.width / dpr;
-const cHeight = canvas.height / dpr;
-
-const centerX = cWidth / 2;
-const centerY = cHeight / 2;
-
-// Gets the location of the canvas on the entire screen
-// https://stackoverflow.com/questions/70519964/how-to-get-topleft-topright-bottomleft-bottomright-and-centretop-position-of
-var boundingRect = canvas.getBoundingClientRect();
-window.onresize = () => {
-    boundingRect = canvas.getBoundingClientRect();
-};
-
-const cellHeight = cHeight / nRows;
-const cellWidth = cWidth / nCols;
-
-const BOARD_COLOR = "#D2D7DF";
-const LINE_COLOR = "black";
-const TEXT_BOX_COLOR = "#353535";
-const TEXT_BOX_TEXT_COLOR = "white";
-
-const CIRCLE_COLOR = "green";
-const TRIANGLE_COLOR = "yellow";
-const SQUARE_COLOR = "red";
-
-//////////////////////
-//                  //
-//    Game Logic    //
-//                  //
-//////////////////////
-function drawLine(startX, startY, endX, endY, lineColor, lineWidth) {
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke(); // Actually draw the line
-    ctx.closePath();
-}
-
-function drawTriangle(p1, p2, p3, fillColor) {
-    ctx.fillStyle = fillColor;
-    ctx.beginPath();
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
-    ctx.lineTo(p3[0], p3[1]);
-    ctx.fill();
-    ctx.closePath();
-}
-
-function drawCircle(centerX, centerY, radius, fillColor) {
-    ctx.fillStyle = fillColor;
-    ctx.beginPath(); // Begin a new path
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); // Define the circle
-    ctx.fill();
-    ctx.closePath();
-}
-
-function drawBoard() {
-    for (let i = 1; i < nCols; i++)
-        drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
-
-    for (let i = 1; i < nRows; i++)
-        drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
-}
-
-function resetGame() {
-    clearTimeout(cpuTurnTimeoutId);
-    gameOver = false;
-    curPlayer = 0;
-    $("#p1").addClass("current-player");
-    $("#p2").removeClass("current-player");
-    $("#play-again-button").addClass("invisible");
-
-    ctx.fillStyle = BOARD_COLOR;
-    ctx.fillRect(0, 0, cellWidth * nCols, cellHeight * nRows);
-    for (cell in board) {
-        drawBoard();
-        board[cell] = 0;
+        this.CIRCLE_COLOR = "green";
+        this.TRIANGLE_COLOR = "yellow";
+        this.SQUARE_COLOR = "red";
     }
-}
 
-function activateCell(cell) {
-    // 0 -> draw a circle
-    // 1 -> draw a triangle
-    // 2 -> draw a square
-    var cellRow = Math.floor(cell / nCols);
-    var cellCol = cell % nCols;
-    var boardPos = board[cell];
-    var centerX = (cellCol * cellWidth) + (cellWidth / 2);
-    var centerY = (cellRow * cellHeight) + (cellHeight / 2);
-    if (boardPos == 0) {
-        drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, CIRCLE_COLOR);
+    //////////////////////
+    //                  //
+    //    Game Logic    //
+    //                  //
+    //////////////////////
+    // Must Implement
+    drawBoard() {
+        const { cWidth } = this;
+        const { cHeight } = this;
+        const { nCols } = this;
+        const { nRows } = this;
+        const { LINE_COLOR } = this;
+
+        for (let i = 1; i < nCols; i++)
+            super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
+
+        for (let i = 1; i < nRows; i++)
+            super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
     }
-    else if (boardPos == 1) {
-        // Cheat for covering up previous circle: Draw a new (slightly bigger) one at the same spot
-        drawCircle(centerX, centerY, (Math.min(cellWidth, cellHeight) / 3) + 1, BOARD_COLOR);
 
-        var p1 = [(cellCol * cellWidth) + (cellWidth / 2), (cellRow * cellHeight) + (cellHeight / 6)];
-        var p2 = [(cellCol * cellWidth) + (cellWidth / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
-        var p3 = [(cellCol * cellWidth) + (cellWidth * 5 / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
-        drawTriangle(p1, p2, p3, TRIANGLE_COLOR);
+    // Must Implement
+    clearBoard() {
+        this.ctx.fillStyle = this.BOARD_COLOR;
+        this.ctx.fillRect(0, 0, this.cellWidth * this.nCols, this.cellHeight * this.nRows);
     }
-    else if (boardPos == 2) {
-        // we want the square to occupy 2/3 of the cell (1/6 gaps from the sides to the side of the square)
-        var startX = (cellCol * cellWidth) + (cellWidth / 6);
-        var startY = (cellRow * cellHeight) + (cellHeight / 6);
-        ctx.fillStyle = SQUARE_COLOR;
-        ctx.fillRect(startX, startY, (cellWidth * 2) / 3, (cellHeight * 2) / 3);
-    }
-    board[cell]++;
-}
 
-function getCell(x, y) {
-    // Use Math.floor to replicate integer division in JavaScript (https://stackoverflow.com/questions/4228356/how-to-perform-an-integer-division-and-separately-get-the-remainder-in-javascr)
-    let row = Math.floor(y / (cHeight / nRows));
-    let col = Math.floor(x / (cWidth / nCols));
-    return (row * nCols) + col;
-}
+    resetGame() {
+        super.resetGame();
 
-function changePlayer() {
-    curPlayer = (curPlayer + 1) % 2;
-    $(".player-box").toggleClass("current-player");
-}
-
-function checkForWin() {
-    for (let i = 0; i < wins.length; i++) {
-        var winRow = wins[i];
-        if ((board[winRow[0]] == board[winRow[1]]) && (board[winRow[0]] == board[winRow[2]]) && (board[winRow[0]] != 0))
-            return true;
-    }
-    return false;
-}
-
-function displayWinner() {
-    let text = 'Player ' + (curPlayer + 1) + ' wins!';
-    if (gameMode == "pvc" && curPlayer == 1)
-        text = 'Computer wins!';
-    let textWidth = ctx.measureText(text).width;
-    let textHeight = ctx.measureText('M').width; // cheat to get height
-    let textX = (cWidth / 2) - textWidth / 2;
-    let textY = cHeight / 2;
-
-    let textBoxWidth = textWidth * 1.2;
-    let textBoxHeight = textHeight * 1.4;
-    let textBoxX = textX - (textWidth * .1);
-    let textBoxY = textY - textHeight;
-
-    // Draw the box first
-    ctx.fillStyle = TEXT_BOX_COLOR;
-    ctx.fillRect(textBoxX, textBoxY, textBoxWidth, textBoxHeight);
-
-    // Then draw the text
-    ctx.fillStyle = TEXT_BOX_TEXT_COLOR;
-    ctx.fillText(text, textX, textY);
-}
-
-function makeMove(cell) {
-    activateCell(cell);
-    if (checkForWin())
-        endGame();
-    else {
-        changePlayer();
-        if (gameMode == "pvc" && curPlayer == 1)
-            cpuTurn();
-    }
-}
-
-function endGame() {
-    gameOver = true;
-    displayWinner();
-    addPlayAgainButton();
-}
-
-/////////////////////////////////
-//                             //
-//    Computer Player Logic    //
-//                             //
-/////////////////////////////////
-
-// All -> If there is a winning move, make it.
-// Easy ->  Play in a random spot
-// Hard -> Play in a random spot, unless this could allow the opponent to win on the next move
-
-function cpuTurn() {
-    var possibleMoves = calculatePossibleMoves();
-    var chosenCell;
-    for (let move of possibleMoves) {
-        board[move]++;
-        if (checkForWin())
-            chosenCell = move;
-        board[move]--;
-    }
-    if (!chosenCell) {
-        switch (cpuDifficulty) {
-            case (Difficulties.EASY):
-                var randomIndex = Math.floor(Math.random() * possibleMoves.length);
-                var chosenCell = possibleMoves[randomIndex];
-                break;
-            case (Difficulties.HARD):
-                var potentialMoves = [...possibleMoves];
-                for (let move of possibleMoves) {
-                    board[move]++;
-                    var humanPossibleMoves = calculatePossibleMoves();
-                    for (let humanMove of humanPossibleMoves) {
-                        board[humanMove]++;
-                        if (checkForWin()) {
-                            potentialMoves.splice(potentialMoves.indexOf(move), 1);
-                            board[humanMove]--;
-                            break;
-                        }
-                        board[humanMove]--;
-                    }
-                    board[move]--;
-                }
-                if (potentialMoves.length == 0) {
-                    var randomIndex = Math.floor(Math.random() * possibleMoves.length);
-                    var chosenCell = possibleMoves[randomIndex];
-                }
-                else {
-                    var randomIndex = Math.floor(Math.random() * potentialMoves.length);
-                    var chosenCell = potentialMoves[randomIndex];
-                }
-                break;
-            default:
-                console.error("CPU difficulty is not one of the options!")
+        // Must Implement
+        for (let cell in this.board) {
+            this.board[cell] = 0;
         }
     }
 
-    cpuTurnTimeoutId = setTimeout(() => {
-        makeMove(chosenCell)
-    }, 1100);
+    activateCell(cell) {
+        const { cellWidth } = this;
+        const { cellHeight } = this;
+
+        // 0 -> draw a circle
+        // 1 -> draw a triangle
+        // 2 -> draw a square
+        var cellRow = Math.floor(cell / this.nCols);
+        var cellCol = cell % this.nCols;
+        var boardPos = this.board[cell];
+        var centerX = (cellCol * cellWidth) + (cellWidth / 2);
+        var centerY = (cellRow * cellHeight) + (cellHeight / 2);
+        if (boardPos == 0) {
+            super.drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, this.CIRCLE_COLOR);
+        }
+        else if (boardPos == 1) {
+            // Cheat for covering up previous circle: Draw a new (slightly bigger) one at the same spot
+            super.drawCircle(centerX, centerY, (Math.min(cellWidth, cellHeight) / 3) + 1, this.BOARD_COLOR);
+
+            var p1 = [(cellCol * cellWidth) + (cellWidth / 2), (cellRow * cellHeight) + (cellHeight / 6)];
+            var p2 = [(cellCol * cellWidth) + (cellWidth / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
+            var p3 = [(cellCol * cellWidth) + (cellWidth * 5 / 6), (cellRow * cellHeight) + (cellHeight * 5 / 6)];
+            super.drawTriangle(p1, p2, p3, this.TRIANGLE_COLOR);
+        }
+        else if (boardPos == 2) {
+            // we want the square to occupy 2/3 of the cell (1/6 gaps from the sides to the side of the square)
+            var startX = (cellCol * cellWidth) + (cellWidth / 6);
+            var startY = (cellRow * cellHeight) + (cellHeight / 6);
+            this.ctx.fillStyle = this.SQUARE_COLOR;
+            this.ctx.fillRect(startX, startY, (cellWidth * 2) / 3, (cellHeight * 2) / 3);
+        }
+        this.board[cell]++;
+    }
+
+    getCell(x, y) {
+        // Use Math.floor to replicate integer division in JavaScript (https://stackoverflow.com/questions/4228356/how-to-perform-an-integer-division-and-separately-get-the-remainder-in-javascr)
+        let row = Math.floor(y / (this.cHeight / this.nRows));
+        let col = Math.floor(x / (this.cWidth / this.nCols));
+        return (row * this.nCols) + col;
+    }
+
+    // Must Implement
+    checkForWin() {
+        const { board } = this;
+        const { wins } = this;
+
+        for (let i = 0; i < wins.length; i++) {
+            var winRow = wins[i];
+            if ((board[winRow[0]] == board[winRow[1]]) && (board[winRow[0]] == board[winRow[2]]) && (board[winRow[0]] != 0))
+                return true;
+        }
+        return false;
+    }
+
+    takeTurn(cell) {
+        // Must Implement
+        this.activateCell(cell);
+
+        // Call to super to end turn
+        super.endTurn();
+    }
+
+    /////////////////////////////////
+    //                             //
+    //    Computer Player Logic    //
+    //                             //
+    /////////////////////////////////
+
+    // All -> If there is a winning move, make it.
+    // Easy ->  Play in a random spot
+    // Hard -> Play in a random spot, unless this could allow the opponent to win on the next move
+
+    // Must Implement
+    cpuTurn() {
+        const { board } = this;
+        const { Difficulties } = this;
+
+        var possibleMoves = this.calculatePossibleMoves();
+        var chosenCell;
+        for (let move of possibleMoves) {
+            board[move]++;
+            if (this.checkForWin())
+                chosenCell = move;
+            board[move]--;
+        }
+        if (!chosenCell) {
+            switch (this.cpuDifficulty) {
+                case (Difficulties.EASY):
+                    var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+                    var chosenCell = possibleMoves[randomIndex];
+                    break;
+                case (Difficulties.HARD):
+                    var potentialMoves = [...possibleMoves];
+                    for (let move of possibleMoves) {
+                        board[move]++;
+                        var humanPossibleMoves = this.calculatePossibleMoves();
+                        for (let humanMove of humanPossibleMoves) {
+                            board[humanMove]++;
+                            if (this.checkForWin()) {
+                                potentialMoves.splice(potentialMoves.indexOf(move), 1);
+                                board[humanMove]--;
+                                break;
+                            }
+                            board[humanMove]--;
+                        }
+                        board[move]--;
+                    }
+                    if (potentialMoves.length == 0) {
+                        var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+                        var chosenCell = possibleMoves[randomIndex];
+                    }
+                    else {
+                        var randomIndex = Math.floor(Math.random() * potentialMoves.length);
+                        var chosenCell = potentialMoves[randomIndex];
+                    }
+                    break;
+                default:
+                    console.error("CPU difficulty is not one of the options!")
+            }
+        }
+
+        // Super call to set move, passing in the necessary parameter to takeTurn()
+        super.setCPUMove(chosenCell);
+    }
+
+    calculatePossibleMoves() {
+        var possibleMoves = [];
+        for (let i in this.board) {
+            if (this.board[i] < 3)
+                possibleMoves.push(i);
+        }
+        return possibleMoves;
+    }
+
+    // Must Implement
+    gameHandleClick(clickX, clickY) {
+        var cell = this.getCell(clickX, clickY);
+        if (this.board[cell] < 3) {
+            this.takeTurn(cell);
+        }
+    }
+
 }
 
-function calculatePossibleMoves() {
-    var possibleMoves = [];
-    for (i in board) {
-        if (board[i] < 3)
-            possibleMoves.push(i);
-    }
-    return possibleMoves;
-}
+game_object = new TrafficLights();
+game_object.startGame();
 
 //////////////////////////
 //                      //
 //    Listeners + UI    //
 //                      //
 //////////////////////////
-$("canvas").on("click", handleClick);
-
-function handleClick(e) {
-    if (!gameOver && (gameMode == Game_Modes.PVP || (gameMode == Game_Modes.PVC && curPlayer == 0))) {
-        const clickX = e.clientX - boundingRect.left;
-        const clickY = e.clientY - boundingRect.top;
-        var cell = getCell(clickX, clickY);
-        if (board[cell] < 3) {
-            makeMove(cell);
-        }
-    }
-}
-
-function optionsListener() {
-    if (getCheckedValue("game_mode") != gameMode)
-        $(".options-warning").removeClass("invisible");
-    else
-        $(".options-warning").addClass("invisible");
-}
-
-function updateOptions() {
-    cpuDifficulty = getCheckedValue("cpu_difficulty");
-    var newGameMode = getCheckedValue("game_mode");
-    if (newGameMode != gameMode)
-        resetGame();
-    gameMode = newGameMode;
-    updatePlayerLabels();
-
-    $(".options-warning").addClass("invisible");
-}
-
-function getCheckedValue(groupName) {
-    var form = $("#options-form")[0];
-    var inputs = [...form.elements[groupName]]; //https://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
-    var checkedValue;
-    inputs.forEach(input => {
-        if (input.checked) {
-            checkedValue = input.value;
-        }
-    })
-    return checkedValue;
-}
-
-function updatePlayerLabels() {
-    var p2Label = $("#p2-label");
-    if (gameMode == Game_Modes.PVC)
-        p2Label.text("Computer");
-    else
-        p2Label.text("Player 2");
-}
-
-function addPlayAgainButton() {
-    $("#play-again-button").removeClass("invisible");
-}
+window.onresize = () => {
+    boundingRect = game_object.canvas.getBoundingClientRect();
+};
 
 $(document).keypress(e => {
     if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's')
         $("#options-modal").modal("toggle");
     else if (e.key.toLowerCase() == 'r')
-        resetGame();
+        game_object.resetGame();
 });
 
-drawBoard();
+// Toggles the hide/show arrows
+$(".collapse-controller").on("click", e => {
+    let arrowIcon = $(e.target);
+    if ($(e.target).children().length > 0)
+        arrowIcon = $(e.target).children()[0];
+    $(arrowIcon).toggleClass("fa-caret-right");
+    $(arrowIcon).toggleClass("fa-caret-down");
+})

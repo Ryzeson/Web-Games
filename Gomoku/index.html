@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Name!</title>
+    <title>Gomoku!</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
     <!-- Add Font Awesome CSS for icons -->
@@ -17,12 +17,12 @@
     <div class="container pt-4">
         <div class="row justify-content-center">
             <div class="column d-flex justify-content-center pb-1">
-                <h1 class="text-white">Traffic Lights</h1>
+                <h1 class="text-white">Gomoku</h1>
             </div>
         </div>
         <div class="row justify-content-center">
             <div class="column d-flex justify-content-center" id="game-container">
-                <canvas id="game-canvas"></canvas>
+                <canvas id="game-canvas" onclick="game_object.handleClick(event)"></canvas>
             </div>
         </div>
         <div class="row justify-content-center pt-3">
@@ -39,14 +39,10 @@
                             id="options-gear"></i>
                     </div>
                     <div class="collapse" id="rules"> <!-- use 'show' to have the content displayed be default-->
-                        On each turn, a player must click a cell on the game board. If the cell is empty,
-                        a green circle is placed in the cell. If the cell contains a green circle, it will be
-                        replaced by a yellow triangle. If the cell contains a yellow trianlge, it will be replaced
-                        by a red square. The object of the game is to be the first player to get 3 of
-                        the same shape/color in a row (vertically, horizontally, or diagonally).
+                        TODO: Explain rules.
                         <br><br>
                         <h2 class="rules-heading">Controls</h2>
-                        Click a cell to activate it.<br>
+                        TODO: Explain controls.<br>
                         Press the "R" key to reset the game.<br>
                         Press the "O" key to toggle the options menu.<br>
                     </div>
@@ -63,7 +59,7 @@
                     </div>
                     <div class="d-flex additional-buttons-box mt-3" id="additional-buttons-container">
                         <button type="button" class="btn btn-primary ml-auto invisible" id="play-again-button"
-                            onclick="resetGame()">Play Again!</button>
+                            onclick="game_object.resetGame()">Play Again!</button>
                     </div>
                 </div>
             </div>
@@ -91,7 +87,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="options-form" onchange="optionsListener()">
+                    <form id="options-form" onchange="game_object.optionsListener()">
                         <strong>Game Mode:</strong><br>
                         <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
                         <br>
@@ -107,7 +103,7 @@
                     <h2 class="options-warning invisible">Changing the game mode will reset your current game!</h2>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="updateOptions()">Save
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="game_object.updateOptions()">Save
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -118,8 +114,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+    <script src="scripts/AbstractGame.js"></script>
     <script src="scripts/nexus.js"></script>
-    <script src="scripts/ui.js"></script>
 </body>
 
 </html>
