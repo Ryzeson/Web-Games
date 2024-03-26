@@ -45,7 +45,9 @@ class AbstractGame {
             HARD: "hard"
         });
 
-        this.curPlayer = 0;
+        this.PLAYER_ONE_VAL = 0;
+        this.PLAYER_TWO_VAL = 1;
+        this.curPlayer = this.PLAYER_ONE_VAL;
         this.gameOver = false;
         this.gameMode = this.Game_Modes.PVP;
         this.cpuDifficulty = this.Difficulties.EASY;
@@ -118,7 +120,6 @@ class AbstractGame {
         $("#p2").removeClass("current-player");
         $("#play-again-button").addClass("invisible");
 
-        this.clearBoard();
         this.drawBoard();
     }
 
@@ -235,10 +236,6 @@ class AbstractGame {
 
     drawBoard() {
         throw new Error("Draw board must be implemented");
-    }
-
-    clearBoard() {
-        throw new Error("Clear board must be implemented");
     }
 
     checkForWin() {

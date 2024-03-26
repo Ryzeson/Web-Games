@@ -62,17 +62,15 @@ class TrafficLights extends AbstractGame {
         const { nRows } = this;
         const { LINE_COLOR } = this;
 
+        // Clear board
+        this.ctx.fillStyle = this.BOARD_COLOR;
+        this.ctx.fillRect(0, 0, this.cellWidth * this.nCols, this.cellHeight * this.nRows);
+
         for (let i = 1; i < nCols; i++)
             super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
 
         for (let i = 1; i < nRows; i++)
             super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
-    }
-
-    // Must Implement
-    clearBoard() {
-        this.ctx.fillStyle = this.BOARD_COLOR;
-        this.ctx.fillRect(0, 0, this.cellWidth * this.nCols, this.cellHeight * this.nRows);
     }
 
     resetGame() {

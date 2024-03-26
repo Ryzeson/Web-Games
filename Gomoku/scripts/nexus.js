@@ -8,14 +8,17 @@ class Gomoku extends AbstractGame {
         //    Game Constants    //
         //                      //
         //////////////////////////
+        this.EMPTY_CELL = -1;
 
         this.nRows = 15;
         this.nCols = 15;
 
         this.board = [];
         for (let i = 0; i < this.nRows * this.nCols; i++) {
-            this.board[i] = i;
+            this.board[i] = this.EMPTY_CELL;
         }
+
+        this.mostRecentCell;
 
         ////////////////////////////
         //                        //
@@ -25,7 +28,9 @@ class Gomoku extends AbstractGame {
         this.cellHeight = this.cHeight / this.nRows;
         this.cellWidth = this.cWidth / this.nCols;
 
-        this.CIRCLE_COLOR = "black";
+        this.PLAYER_ONE_COLOR = "white";
+        this.PLAYER_TWO_COLOR = "black";
+        this.CIRCLE_COLOR = this.PLAYER_ONE_COLOR;
     }
 
     // Must Implement
@@ -36,6 +41,10 @@ class Gomoku extends AbstractGame {
         const { nRows } = this;
         const { LINE_COLOR } = this;
 
+        // Clear board
+        this.ctx.fillStyle = this.BOARD_COLOR;
+        this.ctx.fillRect(0, 0, this.cellWidth * this.nCols, this.cellHeight * this.nRows);
+
         for (let i = 1; i < nCols; i++)
             super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
 
@@ -43,20 +52,61 @@ class Gomoku extends AbstractGame {
             super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
     }
 
-    // Must Implement
-    clearBoard() {
-
-    }
-
     resetGame() {
         super.resetGame();
 
         // Must Implement
+        for (let i = 0; i < this.nRows * this.nCols; i++) {
+            this.board[i] = this.EMPTY_CELL;
+        }
     }
 
     // Must Implement (returns a boolean)
     checkForWin() {
-
+        for (let cell = 0; cell < this.board.length; cell++) {
+            let cellVal = this.board[cell];
+            if (cellVal != this.EMPTY_CELL) {
+                var cellRow = Math.floor(cell / this.nCols);
+                var cellCol = cell % this.nCols;
+                // Horizontal
+                if (cellCol <= this.nCols - 5) {
+                    var winFlag = true;
+                    for (let i = cell; i < cell + 5; i++) {
+                        if (this.board[i] != cellVal)
+                            winFlag = false;
+                    }
+                    if (winFlag) return true;
+                }
+                // Vertical
+                if (cellRow <= this.nRows - 5) {
+                    var winFlag = true;
+                    for (let i = cell; i < cell + (5 * this.nCols); i = i + this.nCols) {
+                        if (this.board[i] != cellVal)
+                            winFlag = false;
+                    }
+                    if (winFlag) return true;
+                }
+                // Diagonal (down-right)
+                if (cellCol <= this.nCols - 5) {
+                    var winFlag = true;
+                    for (let i = cell; i < cell + (5 * (this.nCols + 1)); i = i + this.nCols + 1) {
+                        if (this.board[i] != cellVal)
+                            winFlag = false;
+                    }
+                    if (winFlag) return true;
+                }
+                // Diagonal (down-left)
+                if (cellCol >= 4) {
+                    var winFlag = true;
+                    for (let i = cell; i < cell + (5 * (this.nCols - 1)); i = i + (this.nCols - 1)) {
+                        if (this.board[i] != cellVal)
+                            winFlag = false;
+                    }
+                    if (winFlag) return true;
+                }
+            }
+        }
+        return false;
     }
 
     takeTurn(cell) {
@@ -65,6 +115,11 @@ class Gomoku extends AbstractGame {
 
         // Call to super to end turn
         super.endTurn();
+    }
+
+    changePlayer() {
+        super.changePlayer();
+        this.CIRCLE_COLOR = this.curPlayer == 0 ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR;
     }
 
     activateCell(cell) {
@@ -81,7 +136,7 @@ class Gomoku extends AbstractGame {
         var centerX = (cellCol * cellWidth) + (cellWidth / 2);
         var centerY = (cellRow * cellHeight) + (cellHeight / 2);
         super.drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, this.CIRCLE_COLOR);
-        this.board[cell]++;
+        this.board[cell] = this.curPlayer;
     }
 
     getCell(x, y) {
@@ -101,7 +156,8 @@ class Gomoku extends AbstractGame {
     // Must Implement
     gameHandleClick(clickX, clickY) {
         var cell = this.getCell(clickX, clickY);
-        this.takeTurn(cell);
+        if (this.board[cell] == this.EMPTY_CELL)
+            this.takeTurn(cell);
     }
 
 }
