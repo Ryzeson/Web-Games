@@ -45,12 +45,18 @@ class AbstractGame {
             HARD: "hard"
         });
 
+        this.Game_Speeds = Object.freeze({
+            NORMAL: 1100,
+            INSTANT: 0
+        });
+
         this.PLAYER_ONE_VAL = 0;
         this.PLAYER_TWO_VAL = 1;
+        this.COMPUTER_VAL = 1;
         this.curPlayer = this.PLAYER_ONE_VAL;
         this.gameOver = false;
-        this.gameMode = this.Game_Modes.PVP;
-        this.cpuDifficulty = this.Difficulties.EASY;
+        this.gameMode = this.Game_Modes.PVC;
+        this.cpuDifficulty = this.Difficulties.HARD;
         this.cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
 
         ////////////////////////////
@@ -109,6 +115,16 @@ class AbstractGame {
         ctx.beginPath(); // Begin a new path
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); // Define the circle
         ctx.fill();
+        ctx.closePath();
+    }
+
+    drawCircleNoFill(centerX, centerY, radius, strokeColor, lineWidth) {
+        const { ctx } = this;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = lineWidth;
+        ctx.beginPath(); // Begin a new path
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); // Define the circle
+        ctx.stroke();
         ctx.closePath();
     }
 
@@ -176,7 +192,7 @@ class AbstractGame {
     setCPUMove(param) {
         this.cpuTurnTimeoutId = setTimeout(() => {
             this.takeTurn(param)
-        }, 1100);
+        }, this.Game_Speeds.INSTANT);
     }
 
     //////////////////////////

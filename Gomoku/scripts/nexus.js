@@ -10,8 +10,8 @@ class Gomoku extends AbstractGame {
         //////////////////////////
         this.EMPTY_CELL = -1;
 
-        this.nRows = 15;
-        this.nCols = 15;
+        this.nRows = 8;
+        this.nCols = 8;
 
         this.board = [];
         for (let i = 0; i < this.nRows * this.nCols; i++) {
@@ -19,6 +19,7 @@ class Gomoku extends AbstractGame {
         }
 
         this.mostRecentCell;
+        this.winningCombos;
 
         ////////////////////////////
         //                        //
@@ -59,59 +60,77 @@ class Gomoku extends AbstractGame {
         for (let i = 0; i < this.nRows * this.nCols; i++) {
             this.board[i] = this.EMPTY_CELL;
         }
+        this.CIRCLE_COLOR = this.PLAYER_ONE_COLOR;
     }
 
     // Must Implement (returns a boolean)
     checkForWin() {
+        var combos = this.getCombos(5);
+        this.winningCombos = combos;
+        return combos.length > 0;
+    }
+
+    getCombos(nPieces, playerVal) {
+        var combos = [];
+        var players = (playerVal ? [playerVal] : [this.PLAYER_ONE_VAL, this.PLAYER_TWO_VAL])
         for (let cell = 0; cell < this.board.length; cell++) {
             let cellVal = this.board[cell];
-            if (cellVal != this.EMPTY_CELL) {
+            if (cellVal != this.EMPTY_CELL && players.includes(cellVal)) {
                 var cellRow = Math.floor(cell / this.nCols);
                 var cellCol = cell % this.nCols;
                 // Horizontal
-                if (cellCol <= this.nCols - 5) {
+                if (cellCol <= this.nCols - nPieces) {
                     var winFlag = true;
-                    for (let i = cell; i < cell + 5; i++) {
+                    var possibleCombo = [];
+                    for (let i = cell; i < cell + nPieces; i++) {
+                        possibleCombo.push(i);
                         if (this.board[i] != cellVal)
                             winFlag = false;
                     }
-                    if (winFlag) return true;
+                    if (winFlag) combos.push(possibleCombo);
                 }
                 // Vertical
-                if (cellRow <= this.nRows - 5) {
+                if (cellRow <= this.nRows - nPieces) {
                     var winFlag = true;
-                    for (let i = cell; i < cell + (5 * this.nCols); i = i + this.nCols) {
+                    var possibleCombo = [];
+                    for (let i = cell; i < cell + (nPieces * this.nCols); i = i + this.nCols) {
+                        possibleCombo.push(i);
                         if (this.board[i] != cellVal)
                             winFlag = false;
                     }
-                    if (winFlag) return true;
+                    if (winFlag) combos.push(possibleCombo);
                 }
                 // Diagonal (down-right)
-                if (cellCol <= this.nCols - 5) {
+                if (cellCol <= this.nCols - nPieces) {
                     var winFlag = true;
-                    for (let i = cell; i < cell + (5 * (this.nCols + 1)); i = i + this.nCols + 1) {
+                    var possibleCombo = [];
+                    for (let i = cell; i < cell + (nPieces * (this.nCols + 1)); i = i + this.nCols + 1) {
+                        possibleCombo.push(i);
                         if (this.board[i] != cellVal)
                             winFlag = false;
                     }
-                    if (winFlag) return true;
+                    if (winFlag) combos.push(possibleCombo);
                 }
                 // Diagonal (down-left)
-                if (cellCol >= 4) {
+                if (cellCol >= (nPieces - 1)) {
                     var winFlag = true;
-                    for (let i = cell; i < cell + (5 * (this.nCols - 1)); i = i + (this.nCols - 1)) {
+                    var possibleCombo = [];
+                    for (let i = cell; i < cell + (nPieces * (this.nCols - 1)); i = i + (this.nCols - 1)) {
+                        possibleCombo.push(i);
                         if (this.board[i] != cellVal)
                             winFlag = false;
                     }
-                    if (winFlag) return true;
+                    if (winFlag) combos.push(possibleCombo);
                 }
             }
         }
-        return false;
+        return combos;
     }
 
     takeTurn(cell) {
         // Must Implement
-        this.activateCell(cell);
+        this.drawCell(cell);
+        this.board[cell] = this.curPlayer;
 
         // Call to super to end turn
         super.endTurn();
@@ -122,21 +141,31 @@ class Gomoku extends AbstractGame {
         this.CIRCLE_COLOR = this.curPlayer == 0 ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR;
     }
 
-    activateCell(cell) {
+    drawCell(cell, color) {
         const { cellWidth } = this;
         const { cellHeight } = this;
 
         var cellRow = Math.floor(cell / this.nCols);
         var cellCol = cell % this.nCols;
 
-        console.log(cell);
-        console.log(cellRow);
-        console.log(cellCol);
+        var centerX = (cellCol * cellWidth) + (cellWidth / 2);
+        var centerY = (cellRow * cellHeight) + (cellHeight / 2);
+        if (color)
+            super.drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, color);
+        else
+            super.drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, this.CIRCLE_COLOR);
+    }
+
+    drawCellOutline(cell, color) {
+        const { cellWidth } = this;
+        const { cellHeight } = this;
+
+        var cellRow = Math.floor(cell / this.nCols);
+        var cellCol = cell % this.nCols;
 
         var centerX = (cellCol * cellWidth) + (cellWidth / 2);
         var centerY = (cellRow * cellHeight) + (cellHeight / 2);
-        super.drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) / 3, this.CIRCLE_COLOR);
-        this.board[cell] = this.curPlayer;
+        super.drawCircleNoFill(centerX, centerY, (Math.min(cellWidth, cellHeight) / 3) + 1, color, 3);
     }
 
     getCell(x, y) {
@@ -148,9 +177,68 @@ class Gomoku extends AbstractGame {
 
     // Must Implement
     cpuTurn() {
+        const { board } = this;
+        const { Difficulties } = this;
+
+        let possibleMoves = this.calculatePossibleMoves();
+        let randomMove = Math.floor(Math.random() * possibleMoves.length);
+        let chosenCell = possibleMoves[randomMove];
+        console.log(possibleMoves);
+        console.log(chosenCell);
+        switch (this.cpuDifficulty) {
+            case (Difficulties.EASY):
+            case (Difficulties.HARD):
+                // var comboMap = new Map();
+                let curHumanCombos = this.getCombos(4, this.PLAYER_ONE_VAL);
+                if (curHumanCombos.length > 0) {
+                    this.getWinningMoveForCombo(curHumanCombos[0]);
+                }
+                
+                let curMostCombos = 0;
+                for (let cell of possibleMoves) {
+                    // comboMap.set(cell, this.getConsecutivePieces(4).length);
+                    this.board[cell] = this.COMPUTER_VAL;
+                    let curCPUCombos = this.getCombos(4, this.COMPUTER_VAL);
+                    let curNumCombos = curCPUCombos.length;
+                    
+                    if (curNumCombos > curMostCombos) {
+                        curMostCombos = curNumCombos;
+                        chosenCell = cell;
+                    }
+                    this.board[cell] = this.EMPTY_CELL;
+                }
+                break;
+            default:
+                console.error("CPU difficulty is not one of the options!")
+        }
 
         // Super call to set move, passing in the necessary parameter to takeTurn()
         super.setCPUMove(chosenCell);
+    }
+
+    calculatePossibleMoves() {
+        var possibleMoves = [];
+        for (let i in this.board) {
+            if (this.board[i] == this.EMPTY_CELL)
+                possibleMoves.push(i);
+        }
+        return possibleMoves;
+    }
+
+    getWinningMoveForCombo(combo) {
+        console.log(combo);
+        if (Math.floor(combo[0] / this.nCols) == Math.floor(combo[1] / this.nCols)) { // row
+
+        }
+        else if (Math.floor(combo[0] % this.nCols) == Math.floor(combo[1] % this.nCols)) { // col
+
+        }
+        else if (Math.floor(combo[0] % this.nCols) < Math.floor(combo[1] % this.nCols)) {
+
+        }
+        else {
+
+        }
     }
 
     // Must Implement
@@ -160,6 +248,19 @@ class Gomoku extends AbstractGame {
             this.takeTurn(cell);
     }
 
+    endGame() {
+        this.showWinningCombos();
+        super.endGame();
+    }
+
+    showWinningCombos() {
+        console.log(this.winningCombos);
+        for (let i = 0; i < this.winningCombos.length; i++) {
+            for (let j = 0; j < 5; j++) {
+                this.drawCellOutline(this.winningCombos[i][j], "gold");
+            }
+        }
+    }
 }
 
 game_object = new Gomoku();
