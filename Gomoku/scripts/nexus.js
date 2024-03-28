@@ -72,7 +72,7 @@ class Gomoku extends AbstractGame {
 
     getCombos(nPieces, playerVal) {
         var combos = [];
-        var players = (playerVal ? [playerVal] : [this.PLAYER_ONE_VAL, this.PLAYER_TWO_VAL])
+        var players = (playerVal ? [playerVal] : [this.PLAYER_ONE_VAL, this.PLAYER_TWO_VAL]);
         for (let cell = 0; cell < this.board.length; cell++) {
             let cellVal = this.board[cell];
             if (cellVal != this.EMPTY_CELL && players.includes(cellVal)) {
@@ -126,6 +126,96 @@ class Gomoku extends AbstractGame {
         }
         return combos;
     }
+
+    get4ComboGap() {
+        var gapPlayerMap = [];
+        var nPieces = 5;
+        for (let cell = 0; cell < this.board.length; cell++) {
+            // if (cell == 4) {
+                let startingCellVal = this.board[cell];
+                var cellRow = Math.floor(cell / this.nCols);
+                var cellCol = cell % this.nCols;
+                // Horizontal
+                if (cellCol <= this.nCols - nPieces) {
+                    let winFlag = true;
+                    let gap = 0;
+                    let player = this.EMPTY_CELL;
+                    for (let i = cell; i < cell + nPieces; i++) {
+                        var curCellVal = this.board[i];
+                        if (gap != 0 && (curCellVal == this.EMPTY_CELL || (curCellVal != player && player != this.EMPTY_CELL))) {
+                            winFlag = false;
+                            break;
+                        }
+                        if (curCellVal == this.EMPTY_CELL)
+                            gap = i;
+                        else {
+                            player = curCellVal
+                        }
+                    }
+                    if (winFlag) gapPlayerMap.push([gap, player]);
+                }
+                // Vertical
+                if (cellRow <= this.nRows - nPieces) {
+                    let winFlag = true;
+                    let gap = 0;
+                    let player = this.EMPTY_CELL;
+                    for (let i = cell; i < cell + (nPieces * this.nCols); i = i + this.nCols) {
+                        var curCellVal = this.board[i];
+                        if (gap != 0 && (curCellVal == this.EMPTY_CELL || (curCellVal != player && player != this.EMPTY_CELL))) {
+                            winFlag = false;
+                            break;
+                        }
+                        if (curCellVal == this.EMPTY_CELL)
+                            gap = i;
+                        else {
+                            player = curCellVal
+                        }
+                    }
+                    if (winFlag) gapPlayerMap.push([gap, player]);
+                }
+                // Diagonal (down-right)
+                if (cellCol <= this.nCols - nPieces) {
+                    let winFlag = true;
+                    let gap = 0;
+                    let player = this.EMPTY_CELL;
+                    for (let i = cell; i < cell + (nPieces * (this.nCols + 1)); i = i + this.nCols + 1) {
+                        var curCellVal = this.board[i];
+                        if (gap != 0 && (curCellVal == this.EMPTY_CELL || (curCellVal != player && player != this.EMPTY_CELL))) {
+                            winFlag = false;
+                            break;
+                        }
+                        if (curCellVal == this.EMPTY_CELL)
+                            gap = i;
+                        else {
+                            player = curCellVal
+                        }
+                    }
+                    if (winFlag) gapPlayerMap.push([gap, player]);
+                }
+                // Diagonal (down-left)
+                if (cellCol >= (nPieces - 1)) {
+                    let winFlag = true;
+                    let gap = 0;
+                    let player = this.EMPTY_CELL;
+                    for (let i = cell; i < cell + (nPieces * (this.nCols - 1)); i = i + (this.nCols - 1)) {
+                        var curCellVal = this.board[i];
+                        if (gap != 0 && (curCellVal == this.EMPTY_CELL || (curCellVal != player && player != this.EMPTY_CELL))) {
+                            winFlag = false;
+                            break;
+                        }
+                        if (curCellVal == this.EMPTY_CELL)
+                            gap = i;
+                        else {
+                            player = curCellVal
+                        }
+                    }
+                    if (winFlag) gapPlayerMap.push([gap, player]);
+                }
+            // }
+        }
+        return gapPlayerMap;
+    }
+
 
     takeTurn(cell) {
         // Must Implement
@@ -183,24 +273,36 @@ class Gomoku extends AbstractGame {
         let possibleMoves = this.calculatePossibleMoves();
         let randomMove = Math.floor(Math.random() * possibleMoves.length);
         let chosenCell = possibleMoves[randomMove];
-        console.log(possibleMoves);
-        console.log(chosenCell);
         switch (this.cpuDifficulty) {
             case (Difficulties.EASY):
             case (Difficulties.HARD):
-                // var comboMap = new Map();
-                let curHumanCombos = this.getCombos(4, this.PLAYER_ONE_VAL);
-                if (curHumanCombos.length > 0) {
-                    this.getWinningMoveForCombo(curHumanCombos[0]);
-                }
-                
+                // let curHumanCombos3 = this.getCombos(3, this.PLAYER_ONE_VAL);
+                // if (curHumanCombos3.length > 0) {
+                //     var winningMoves = this.getWinningMovesForCombo(curHumanCombos3[0]);
+                //     if (winningMoves.length == 2) {
+                //         chosenCell = winningMoves[Math.floor(Math.random() * 2)]
+                //         console.log(chosenCell);
+                //         break;
+                //     }
+                // }
+
+                let gapPlayerMap = this.get4ComboGap();
+                console.log(gapPlayerMap);
+                // if (curHumanCombos.length > 0) {
+                //     var winningMoves = this.getWinningMovesForCombo(curHumanCombos[0]);
+                //     if (winningMoves.length > 0) {
+                //         chosenCell = winningMoves[0];
+                //         break;
+                //     }
+                // }
+
                 let curMostCombos = 0;
                 for (let cell of possibleMoves) {
                     // comboMap.set(cell, this.getConsecutivePieces(4).length);
                     this.board[cell] = this.COMPUTER_VAL;
                     let curCPUCombos = this.getCombos(4, this.COMPUTER_VAL);
                     let curNumCombos = curCPUCombos.length;
-                    
+
                     if (curNumCombos > curMostCombos) {
                         curMostCombos = curNumCombos;
                         chosenCell = cell;
@@ -225,20 +327,36 @@ class Gomoku extends AbstractGame {
         return possibleMoves;
     }
 
-    getWinningMoveForCombo(combo) {
+    getWinningMovesForCombo(combo) {
         console.log(combo);
-        if (Math.floor(combo[0] / this.nCols) == Math.floor(combo[1] / this.nCols)) { // row
-
+        var winningMoves = [];
+        var firstInCombo = combo[0];
+        var lastInCombo = combo[combo.length - 1];
+        if (Math.floor(firstInCombo / this.nCols) == Math.floor(lastInCombo / this.nCols)) { // row
+            if (firstInCombo % this.nCols > 0 && (this.board[firstInCombo - 1] == this.EMPTY_CELL))
+                winningMoves.push(firstInCombo - 1)
+            if (lastInCombo % this.nCols < this.nCols - 1 && (this.board[lastInCombo + 1] == this.EMPTY_CELL))
+                winningMoves.push(lastInCombo + 1)
         }
-        else if (Math.floor(combo[0] % this.nCols) == Math.floor(combo[1] % this.nCols)) { // col
-
+        else if (Math.floor(firstInCombo % this.nCols) == Math.floor(lastInCombo % this.nCols)) { // col
+            if (firstInCombo / this.nCols > 0 && (this.board[firstInCombo - this.nCols] == this.EMPTY_CELL))
+                winningMoves.push(firstInCombo - this.nCols)
+            if (lastInCombo % this.nCols < this.nCols - 1 && (this.board[lastInCombo + this.nCols] == this.EMPTY_CELL))
+                winningMoves.push(lastInCombo + this.nCols)
         }
-        else if (Math.floor(combo[0] % this.nCols) < Math.floor(combo[1] % this.nCols)) {
-
+        else if (Math.floor(firstInCombo % this.nCols) > Math.floor(lastInCombo % this.nCols)) { // diagonal (down-right)
+            if (firstInCombo % this.nCols > 0 && firstInCombo / this.nCols > 0 && (this.board[firstInCombo - (this.nCols - 1)] == this.EMPTY_CELL))
+                winningMoves.push(firstInCombo - (this.nCols - 1))
+            if (lastInCombo % this.nCols < this.nCols - 1 && lastInCombo / this.nCols < this.nRows - 1 && (this.board[lastInCombo + (this.nCols + 1)] == this.EMPTY_CELL))
+                winningMoves.push(lastInCombo + (this.nCols + 1))
         }
-        else {
-
+        else { // diagonal (down-left)
+            if (firstInCombo % this.nCols < this.nCols - 1 && firstInCombo / this.nCols > 0 && (this.board[firstInCombo - (this.nCols + 1)] == this.EMPTY_CELL))
+                winningMoves.push(firstInCombo - (this.nCols + 1))
+            if (lastInCombo % this.nCols > 0 && lastInCombo / this.nCols < this.nRows - 1 && (this.board[lastInCombo + (this.nCols - 1)] == this.EMPTY_CELL))
+                winningMoves.push(lastInCombo + (this.nCols - 1))
         }
+        return winningMoves;
     }
 
     // Must Implement
