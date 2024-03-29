@@ -33,7 +33,7 @@ class Gomoku extends AbstractGame {
         this.PLAYER_TWO_COLOR = "black";
         this.CIRCLE_COLOR = this.PLAYER_ONE_COLOR;
         this.BOARD_COLOR = "tan";
-        this.BOARD_MARKER_COLOR = "#00000088";
+        this.BOARD_MARKER_COLOR = "#00000088"; //https://www.digitalocean.com/community/tutorials/css-hex-code-colors-alpha-values
     }
 
     // Must Implement
@@ -52,38 +52,38 @@ class Gomoku extends AbstractGame {
         this.ctx.fillRect(0, 0, this.cellWidth * this.nCols, this.cellHeight * this.nRows);
 
         // Go board
-        var halfCellWidth = cellWidth / 2;
-        var halfCellHeight = cellHeight / 2;
-        for (let i = 1; i < nCols + 1; i++)
-            super.drawLine(((cWidth / nCols) * i) - halfCellWidth, halfCellWidth, ((cWidth / nCols) * i) - halfCellWidth, cHeight - halfCellWidth, LINE_COLOR, 2);
+        // var halfCellWidth = cellWidth / 2;
+        // var halfCellHeight = cellHeight / 2;
+        // for (let i = 1; i < nCols + 1; i++)
+        //     super.drawLine(((cWidth / nCols) * i) - halfCellWidth, halfCellWidth, ((cWidth / nCols) * i) - halfCellWidth, cHeight - halfCellWidth, LINE_COLOR, 2);
 
-        for (let i = 1; i < nRows + 1; i++)
-            super.drawLine(halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, cWidth - halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, LINE_COLOR, 2);
+        // for (let i = 1; i < nRows + 1; i++)
+        //     super.drawLine(halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, cWidth - halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, LINE_COLOR, 2);
 
-        // Draw board markers
-        this.drawCellMini(48);
-        this.drawCellMini(56);
-        this.drawCellMini(112);
-        this.drawCellMini(168);
-        this.drawCellMini(176);
+        // // Draw board markers
+        // this.drawCellMini(48);
+        // this.drawCellMini(56);
+        // this.drawCellMini(112);
+        // this.drawCellMini(168);
+        // this.drawCellMini(176);
 
 
         // Debug board
-        // for (let i = 1; i < nCols; i++)
-        //     super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
+        for (let i = 1; i < nCols; i++)
+            super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
 
-        // for (let i = 1; i < nRows; i++)
-        //     super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
+        for (let i = 1; i < nRows; i++)
+            super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
 
-        // for (let cell in this.board) {
-        //     var cellRow = Math.floor(cell / this.nCols);
-        //     var cellCol = cell % this.nCols;
-        //     var textX = (cellCol * cellWidth) + 2;
-        //     var textY = (cellRow * cellHeight) + 20;
-        //     this.ctx.fillStyle = "black";
-        //     this.ctx.font = "20px sans-serif";
-        //     this.ctx.fillText(cell, textX, textY);
-        // }
+        for (let cell in this.board) {
+            var cellRow = Math.floor(cell / this.nCols);
+            var cellCol = cell % this.nCols;
+            var textX = (cellCol * cellWidth) + 2;
+            var textY = (cellRow * cellHeight) + 20;
+            this.ctx.fillStyle = "black";
+            this.ctx.font = "20px sans-serif";
+            this.ctx.fillText(cell, textX, textY);
+        }
     }
 
     resetGame() {
@@ -252,7 +252,6 @@ class Gomoku extends AbstractGame {
         return gapPlayerMap;
     }
 
-
     takeTurn(cell) {
         // Must Implement
         this.drawCell(cell);
@@ -391,6 +390,50 @@ class Gomoku extends AbstractGame {
         return possibleMoves;
     }
 
+    getUnits(cell) {
+        var unit = [];
+        if (this.board[cell] == this.EMPTY_CELL)
+            return unit;
+        var visited = [];
+        var cellRow = Math.floor(cell / this.nCols);
+        var cellCol = cell % this.nCols;
+        return this.getUnitsHelper(cellRow, cellCol, unit, visited, this.board[cell]);
+    }
+
+    getUnitsHelper(cellRow, cellCol, unit, visited, player) {
+        var cell = (cellRow * this.nCols) + cellCol;
+        if (0 < cellRow < this.nRows - 1 && 0 < cellCol < this.nCols - 1) {
+            if (this.board[cell] == player && !unit.includes(cell)) {
+                unit.push(cell);
+                unit = this.getUnitsHelper(cellRow + 1, cellCol, unit, visited, player);
+                unit = this.getUnitsHelper(cellRow - 1, cellCol, unit, visited, player);
+                unit = this.getUnitsHelper(cellRow, cellCol + 1, unit, visited, player);
+                unit = this.getUnitsHelper(cellRow, cellCol - 1, unit, visited, player);
+            }
+        }
+        return unit;
+    }
+
+    getAllUnits(player) {
+        var units = [];
+        for (let cell = 0; cell < this.board.length; cell++) {
+            var alreadyIncluded = units.some(unit => unit.includes(cell))
+            if (this.board[cell] == player && !alreadyIncluded) {
+                units.push(this.getUnits(cell));
+            }
+        }
+        return units;
+    }
+
+    // getLiberties(unit) {
+    //     for (let cell of unit) {
+    //         var cellRow = Math.floor(cell / this.nCols);
+    //         var cellCol = cell % this.nCols;
+    //         if ()
+    //     }
+    // }
+
+
     getWinningMovesForCombo(combo) {
         console.log(combo);
         var winningMoves = [];
@@ -485,3 +528,7 @@ $(".collapse-controller").on("click", e => {
     $(arrowIcon).toggleClass("fa-caret-right");
     $(arrowIcon).toggleClass("fa-caret-down");
 })
+
+// let array = [1, 2, 3, 4]
+// for (let a of array)
+//     console.log(a);
