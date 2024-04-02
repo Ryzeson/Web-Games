@@ -235,7 +235,7 @@ game_object.startGame();
 //                      //
 //////////////////////////
 window.onresize = () => {
-    boundingRect = game_object.canvas.getBoundingClientRect();
+    game_object.boundingRect = game_object.canvas.getBoundingClientRect();
 };
 
 $(document).keypress(e => {

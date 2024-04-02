@@ -78,7 +78,7 @@ class AbstractGame {
 
         this.BOARD_COLOR = "#D2D7DF";
         this.LINE_COLOR = "black";
-        this.TEXT_BOX_COLOR = "#353535";
+        this.TEXT_BOX_COLOR = "#35353588";
         this.TEXT_BOX_TEXT_COLOR = "white";
     }
 

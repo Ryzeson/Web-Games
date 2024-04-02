@@ -52,38 +52,38 @@ class Gomoku extends AbstractGame {
         this.ctx.fillRect(0, 0, this.cellWidth * this.nCols, this.cellHeight * this.nRows);
 
         // Go board
-        // var halfCellWidth = cellWidth / 2;
-        // var halfCellHeight = cellHeight / 2;
-        // for (let i = 1; i < nCols + 1; i++)
-        //     super.drawLine(((cWidth / nCols) * i) - halfCellWidth, halfCellWidth, ((cWidth / nCols) * i) - halfCellWidth, cHeight - halfCellWidth, LINE_COLOR, 2);
+        var halfCellWidth = cellWidth / 2;
+        var halfCellHeight = cellHeight / 2;
+        for (let i = 1; i < nCols + 1; i++)
+            super.drawLine(((cWidth / nCols) * i) - halfCellWidth, halfCellWidth, ((cWidth / nCols) * i) - halfCellWidth, cHeight - halfCellWidth, LINE_COLOR, 2);
 
-        // for (let i = 1; i < nRows + 1; i++)
-        //     super.drawLine(halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, cWidth - halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, LINE_COLOR, 2);
+        for (let i = 1; i < nRows + 1; i++)
+            super.drawLine(halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, cWidth - halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, LINE_COLOR, 2);
 
-        // // Draw board markers
-        // this.drawCellMini(48);
-        // this.drawCellMini(56);
-        // this.drawCellMini(112);
-        // this.drawCellMini(168);
-        // this.drawCellMini(176);
+        // Draw board markers
+        this.drawCellMini(48);
+        this.drawCellMini(56);
+        this.drawCellMini(112);
+        this.drawCellMini(168);
+        this.drawCellMini(176);
 
 
         // Debug board
-        for (let i = 1; i < nCols; i++)
-            super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
+        // for (let i = 1; i < nCols; i++)
+        //     super.drawLine((cWidth / nCols) * i, 0, (cWidth / nCols) * i, cHeight, LINE_COLOR, 2);
 
-        for (let i = 1; i < nRows; i++)
-            super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
+        // for (let i = 1; i < nRows; i++)
+        //     super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
 
-        for (let cell in this.board) {
-            var cellRow = Math.floor(cell / this.nCols);
-            var cellCol = cell % this.nCols;
-            var textX = (cellCol * cellWidth) + 2;
-            var textY = (cellRow * cellHeight) + 20;
-            this.ctx.fillStyle = "black";
-            this.ctx.font = "20px sans-serif";
-            this.ctx.fillText(cell, textX, textY);
-        }
+        // for (let cell in this.board) {
+        //     var cellRow = Math.floor(cell / this.nCols);
+        //     var cellCol = cell % this.nCols;
+        //     var textX = (cellCol * cellWidth) + 2;
+        //     var textY = (cellRow * cellHeight) + 20;
+        //     this.ctx.fillStyle = "black";
+        //     this.ctx.font = "20px sans-serif";
+        //     this.ctx.fillText(cell, textX, textY);
+        // }
     }
 
     resetGame() {
@@ -160,11 +160,11 @@ class Gomoku extends AbstractGame {
         return combos;
     }
 
+    // Returns all sets of 5 cells where 4 of them are occupied by the color specified, and the other cell is a gap
     get4ComboGap() {
         var gapPlayerMap = [];
         var nPieces = 5;
         for (let cell = 0; cell < this.board.length; cell++) {
-            // if (cell == 4) {
             var cellRow = Math.floor(cell / this.nCols);
             var cellCol = cell % this.nCols;
             // Horizontal
@@ -247,9 +247,111 @@ class Gomoku extends AbstractGame {
                 if (winFlag)
                     gapPlayerMap.push([gap, player]);
             }
-            // }
         }
         return gapPlayerMap;
+    }
+    
+    // Returns all sets of 5 cells where 3 of them are occupied by the color specified, and the other 2 cells are gaps.
+    getCombo2Gap() {
+        var gapsPlayerMap = [];
+        var nPieces = 5;
+        for (let cell = 0; cell < this.board.length; cell++) {
+            var cellRow = Math.floor(cell / this.nCols);
+            var cellCol = cell % this.nCols;
+            // Horizontal
+            if (cellCol <= this.nCols - nPieces) {
+                let winFlag = true;
+                let gaps = [this.EMPTY_CELL, this.EMPTY_CELL];
+                let player = this.EMPTY_CELL;
+                for (let i = cell; i < cell + nPieces; i++) {
+                    var curCellVal = this.board[i];
+                    if ((gaps[0] != this.EMPTY_CELL && gaps[1] != this.EMPTY_CELL && curCellVal == this.EMPTY_CELL) || (curCellVal != player && player != this.EMPTY_CELL && curCellVal != this.EMPTY_CELL)) {
+                        winFlag = false;
+                        break;
+                    }
+                    if (curCellVal == this.EMPTY_CELL)
+                        if (gaps[0] == this.EMPTY_CELL)
+                            gaps[0] = i;
+                        else
+                            gaps[1] = i;
+                    else {
+                        player = curCellVal
+                    }
+                }
+                if (winFlag)
+                    gapsPlayerMap.push([gaps, player]);
+            }
+            // Vertical
+            if (cellRow <= this.nRows - nPieces) {
+                let winFlag = true;
+                let gaps = [this.EMPTY_CELL, this.EMPTY_CELL];
+                let player = this.EMPTY_CELL;
+                for (let i = cell; i < cell + (nPieces * this.nCols); i += this.nCols) {
+                    var curCellVal = this.board[i];
+                    if ((gaps[0] != this.EMPTY_CELL && gaps[1] != this.EMPTY_CELL && curCellVal == this.EMPTY_CELL) || (curCellVal != player && player != this.EMPTY_CELL && curCellVal != this.EMPTY_CELL)) {
+                        winFlag = false;
+                        break;
+                    }
+                    if (curCellVal == this.EMPTY_CELL)
+                        if (gaps[0] == this.EMPTY_CELL)
+                            gaps[0] = i;
+                        else
+                            gaps[1] = i;
+                    else {
+                        player = curCellVal
+                    }
+                }
+                if (winFlag)
+                    gapsPlayerMap.push([gaps, player]);
+            }
+            // Diagonal (down-right)
+            if (cellCol <= this.nCols - nPieces && cellRow <= this.nRows - nPieces) {
+                let winFlag = true;
+                let gaps = [this.EMPTY_CELL, this.EMPTY_CELL];
+                let player = this.EMPTY_CELL;
+                for (let i = cell; i < cell + (nPieces * (this.nCols + 1)); i += this.nCols + 1) {
+                    var curCellVal = this.board[i];
+                    if ((gaps[0] != this.EMPTY_CELL && gaps[1] != this.EMPTY_CELL && curCellVal == this.EMPTY_CELL) || (curCellVal != player && player != this.EMPTY_CELL && curCellVal != this.EMPTY_CELL)) {
+                        winFlag = false;
+                        break;
+                    }
+                    if (curCellVal == this.EMPTY_CELL)
+                        if (gaps[0] == this.EMPTY_CELL)
+                            gaps[0] = i;
+                        else
+                            gaps[1] = i;
+                    else {
+                        player = curCellVal
+                    }
+                }
+                if (winFlag)
+                    gapsPlayerMap.push([gaps, player]);
+            }
+            // Diagonal (down-left)
+            if (cellCol >= (nPieces - 1) && cellRow <= this.nRows - nPieces) {
+                let winFlag = true;
+                let gaps = [this.EMPTY_CELL, this.EMPTY_CELL];
+                let player = this.EMPTY_CELL;
+                for (let i = cell; i < cell + (nPieces * (this.nCols - 1)); i += (this.nCols - 1)) {
+                    var curCellVal = this.board[i];
+                    if ((gaps[0] != this.EMPTY_CELL && gaps[1] != this.EMPTY_CELL && curCellVal == this.EMPTY_CELL) || (curCellVal != player && player != this.EMPTY_CELL && curCellVal != this.EMPTY_CELL)) {
+                        winFlag = false;
+                        break;
+                    }
+                    if (curCellVal == this.EMPTY_CELL)
+                        if (gaps[0] == this.EMPTY_CELL)
+                            gaps[0] = i;
+                        else
+                            gaps[1] = i;
+                    else {
+                        player = curCellVal
+                    }
+                }
+                if (winFlag)
+                    gapsPlayerMap.push([gaps, player]);
+            }
+        }
+        return gapsPlayerMap;
     }
 
     takeTurn(cell) {
@@ -325,19 +427,19 @@ class Gomoku extends AbstractGame {
         switch (this.cpuDifficulty) {
             case (Difficulties.EASY):
             case (Difficulties.HARD):
+                var necessaryMove = false;
+
                 let gapPlayerMap = this.get4ComboGap();
                 let gapPlayerMapSet = this.uniqBy(gapPlayerMap, JSON.stringify);
-                console.log(gapPlayerMapSet);
 
                 // If there is a winning move available, make it
-                var hasWin;
                 for (let winningMove of gapPlayerMapSet) {
                     if (winningMove[1] == this.COMPUTER_VAL) {
                         chosenCell = winningMove[0];
-                        hasWin = true;
+                        necessaryMove = true;
                     }
                 }
-                if (hasWin) break;
+                if (necessaryMove) break;
 
                 // If the opponent has a winning move available, block it. (Chose a random one if multiple.)
                 if (gapPlayerMap.length > 0) {
@@ -345,17 +447,54 @@ class Gomoku extends AbstractGame {
                     break;
                 }
 
+                // If we have 3 in a row with empty cells at either end, place there so we can win next turn
+                let cpu3Combos = this.getCombos(3, this.COMPUTER_VAL);
+                for (let cpu3Combo of cpu3Combos) {
+                    var winningMoves = this.getWinningMovesForCombo(cpu3Combo);
+                    if (winningMoves.length == 2) {
+                        chosenCell = winningMoves[Math.floor(Math.random() * 2)]
+                        necessaryMove = true;
+                        break;
+                    }
+                }
+                if (necessaryMove) break;
+
                 // If the opponent has 3 in a row with empty cells at either end, place there or else they will win in 2 turns
                 let human3Combos = this.getCombos(3, this.PLAYER_ONE_VAL);
                 for (let human3Combo of human3Combos) {
                     var winningMoves = this.getWinningMovesForCombo(human3Combo);
-                    console.log(winningMoves);
                     if (winningMoves.length == 2) {
                         chosenCell = winningMoves[Math.floor(Math.random() * 2)]
-                        console.log(chosenCell);
+                        necessaryMove = true;
                         break;
                     }
                 }
+                if (necessaryMove) break;
+
+                // If the opponent has 3 out of 5 in a row with only empty cells, place in one of these gaps
+                // gapsPlayer map will look like this, where the first index is an array of the gaps, and the second index holds the player the potential combo belongs to
+                // [[21, 23], 0]
+                // [[0, 19], 1]
+                let gapsPlayerMap = this.getCombo2Gap();
+                let humanGaps = gapsPlayerMap.filter(gaps => gaps[1] == this.PLAYER_ONE_VAL)
+
+                if (humanGaps.length > 0) {
+                    var chosenGaps = humanGaps[Math.floor(Math.random() * humanGaps.length)];
+                    chosenCell = chosenGaps[0][Math.floor(Math.random() * 2)];
+                    break;
+                }
+
+                // If an opponent unit has 8 or more liberties, place at one of these liberties
+                var allUnits = this.getAllUnits(this.PLAYER_ONE_VAL);
+                var libertiesByUnit = this.getAllLiberties(allUnits);
+                for (let libertySet of libertiesByUnit) {
+                    if (libertySet.length >= 8) {
+                        chosenCell = libertySet[Math.floor(Math.random() * libertySet.length)];
+                        necessaryMove = true;
+                        break;
+                    }
+                }
+                if (necessaryMove) break;
 
                 // If the player has three in a row, place at one of the ends 
                 if (gapPlayerMap.length > 0) {
@@ -390,25 +529,25 @@ class Gomoku extends AbstractGame {
         return possibleMoves;
     }
 
-    getUnits(cell) {
+    getUnit(cell) {
         var unit = [];
         if (this.board[cell] == this.EMPTY_CELL)
             return unit;
         var visited = [];
         var cellRow = Math.floor(cell / this.nCols);
         var cellCol = cell % this.nCols;
-        return this.getUnitsHelper(cellRow, cellCol, unit, visited, this.board[cell]);
+        return this.getUnitHelper(cellRow, cellCol, unit, visited, this.board[cell]);
     }
 
-    getUnitsHelper(cellRow, cellCol, unit, visited, player) {
+    getUnitHelper(cellRow, cellCol, unit, visited, player) {
         var cell = (cellRow * this.nCols) + cellCol;
-        if (0 < cellRow < this.nRows - 1 && 0 < cellCol < this.nCols - 1) {
+        if (0 <= cellRow < this.nRows - 1 && 0 <= cellCol < this.nCols - 1) {
             if (this.board[cell] == player && !unit.includes(cell)) {
                 unit.push(cell);
-                unit = this.getUnitsHelper(cellRow + 1, cellCol, unit, visited, player);
-                unit = this.getUnitsHelper(cellRow - 1, cellCol, unit, visited, player);
-                unit = this.getUnitsHelper(cellRow, cellCol + 1, unit, visited, player);
-                unit = this.getUnitsHelper(cellRow, cellCol - 1, unit, visited, player);
+                unit = this.getUnitHelper(cellRow + 1, cellCol, unit, visited, player);
+                unit = this.getUnitHelper(cellRow - 1, cellCol, unit, visited, player);
+                unit = this.getUnitHelper(cellRow, cellCol + 1, unit, visited, player);
+                unit = this.getUnitHelper(cellRow, cellCol - 1, unit, visited, player);
             }
         }
         return unit;
@@ -419,19 +558,31 @@ class Gomoku extends AbstractGame {
         for (let cell = 0; cell < this.board.length; cell++) {
             var alreadyIncluded = units.some(unit => unit.includes(cell))
             if (this.board[cell] == player && !alreadyIncluded) {
-                units.push(this.getUnits(cell));
+                units.push(this.getUnit(cell));
             }
         }
         return units;
     }
 
-    // getLiberties(unit) {
-    //     for (let cell of unit) {
-    //         var cellRow = Math.floor(cell / this.nCols);
-    //         var cellCol = cell % this.nCols;
-    //         if ()
-    //     }
-    // }
+    getLiberties(unit) {
+        var liberties = [];
+        for (let cell of unit) {
+            var directions = [cell + 1, cell - 1, cell + this.nCols, cell - this.nCols, cell + (this.nCols + 1), cell + (this.nCols - 1), cell - (this.nCols + 1), cell - (this.nCols - 1)];
+            for (let dir of directions) {
+                if (0 <= dir <= this.nRows - 1 && 0 <= dir <= this.nCols - 1 && this.board[dir] == this.EMPTY_CELL && !liberties.includes(dir))
+                    liberties.push(dir);
+            }
+        }
+        return liberties;
+    }
+
+    getAllLiberties(units) {
+        var libertiesByUnit = [];
+        for (let unit of units) {
+            libertiesByUnit.push(this.getLiberties(unit));
+        }
+        return libertiesByUnit;
+    }
 
 
     getWinningMovesForCombo(combo) {
@@ -510,7 +661,7 @@ game_object.startGame();
 //                      //
 //////////////////////////
 window.onresize = () => {
-    boundingRect = game_object.canvas.getBoundingClientRect();
+    game_object.boundingRect = game_object.canvas.getBoundingClientRect();
 };
 
 $(document).keypress(e => {
