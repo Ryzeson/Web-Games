@@ -21,6 +21,8 @@ class Gomoku extends AbstractGame {
         this.mostRecentCell;
         this.winningCombos;
 
+        this.movesPlayed = [];
+
         ////////////////////////////
         //                        //
         //    Canvas Constants    //
@@ -86,6 +88,17 @@ class Gomoku extends AbstractGame {
         // }
     }
 
+    drawBoardWithState() {
+        this.drawBoard();
+        for (let cell in this.board) {
+            let cellVal = this.board[cell];
+            if (cellVal != this.EMPTY_CELL) {
+                let color = cellVal == this.PLAYER_ONE_VAL ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR;
+                this.drawCell(cell, color);
+            }
+        }
+    }
+
     resetGame() {
         super.resetGame();
 
@@ -94,6 +107,7 @@ class Gomoku extends AbstractGame {
             this.board[i] = this.EMPTY_CELL;
         }
         this.CIRCLE_COLOR = this.PLAYER_ONE_COLOR;
+        this.movesPlayed = [];
     }
 
     // Must Implement (returns a boolean)
@@ -161,9 +175,8 @@ class Gomoku extends AbstractGame {
     }
 
     // Returns all sets of 5 cells where 4 of them are occupied by the color specified, and the other cell is a gap
-    get4ComboGap() {
+    getNComboGap(nPieces) {
         var gapPlayerMap = [];
-        var nPieces = 5;
         for (let cell = 0; cell < this.board.length; cell++) {
             var cellRow = Math.floor(cell / this.nCols);
             var cellCol = cell % this.nCols;
@@ -250,7 +263,7 @@ class Gomoku extends AbstractGame {
         }
         return gapPlayerMap;
     }
-    
+
     // Returns all sets of 5 cells where 3 of them are occupied by the color specified, and the other 2 cells are gaps.
     getCombo2Gap() {
         var gapsPlayerMap = [];
@@ -358,6 +371,8 @@ class Gomoku extends AbstractGame {
         // Must Implement
         this.drawCell(cell);
         this.board[cell] = this.curPlayer;
+        this.movesPlayed.push(cell);
+        console.log(this.movesPlayed);
 
         // Call to super to end turn
         super.endTurn();
@@ -369,7 +384,6 @@ class Gomoku extends AbstractGame {
     }
 
     drawCell(cell, color) {
-        console.log(cell);
         const { cellWidth } = this;
         const { cellHeight } = this;
 
@@ -429,11 +443,11 @@ class Gomoku extends AbstractGame {
             case (Difficulties.HARD):
                 var necessaryMove = false;
 
-                let gapPlayerMap = this.get4ComboGap();
-                let gapPlayerMapSet = this.uniqBy(gapPlayerMap, JSON.stringify);
+                let gapPlayerMap5 = this.getNComboGap(5);
+                let gapPlayerMapSet5 = this.uniqBy(gapPlayerMap5, JSON.stringify);
 
                 // If there is a winning move available, make it
-                for (let winningMove of gapPlayerMapSet) {
+                for (let winningMove of gapPlayerMapSet5) {
                     if (winningMove[1] == this.COMPUTER_VAL) {
                         chosenCell = winningMove[0];
                         necessaryMove = true;
@@ -442,12 +456,14 @@ class Gomoku extends AbstractGame {
                 if (necessaryMove) break;
 
                 // If the opponent has a winning move available, block it. (Chose a random one if multiple.)
-                if (gapPlayerMap.length > 0) {
-                    chosenCell = gapPlayerMap[Math.floor(Math.random() * gapPlayerMap.length)][0];
+                if (gapPlayerMap5.length > 0) {
+                    chosenCell = gapPlayerMap5[Math.floor(Math.random() * gapPlayerMap5.length)][0];
                     break;
                 }
+                
+                // If we can make 4 in a row with empty cells at the end, do this so we can win next turn
 
-                // If we have 3 in a row with empty cells at either end, place there so we can win next turn
+                // If we have 3 in a row with empty cells at either end, place there
                 let cpu3Combos = this.getCombos(3, this.COMPUTER_VAL);
                 for (let cpu3Combo of cpu3Combos) {
                     var winningMoves = this.getWinningMovesForCombo(cpu3Combo);
@@ -458,6 +474,9 @@ class Gomoku extends AbstractGame {
                     }
                 }
                 if (necessaryMove) break;
+
+                // If we have 3 out of 4 in a row, and there is a gap, and there are empty cells at either side
+                // TODO
 
                 // If the opponent has 3 in a row with empty cells at either end, place there or else they will win in 2 turns
                 let human3Combos = this.getCombos(3, this.PLAYER_ONE_VAL);
@@ -484,6 +503,8 @@ class Gomoku extends AbstractGame {
                     break;
                 }
 
+                // If there is a pair of 2/3 combos that share an empty cell at their ends, play there 
+
                 // If an opponent unit has 8 or more liberties, place at one of these liberties
                 var allUnits = this.getAllUnits(this.PLAYER_ONE_VAL);
                 var libertiesByUnit = this.getAllLiberties(allUnits);
@@ -497,8 +518,8 @@ class Gomoku extends AbstractGame {
                 if (necessaryMove) break;
 
                 // If the player has three in a row, place at one of the ends 
-                if (gapPlayerMap.length > 0) {
-                    chosenCell = gapPlayerMap[Math.floor(Math.random() * gapPlayerMap.length)][0];
+                if (gapPlayerMap5.length > 0) {
+                    chosenCell = gapPlayerMap5[Math.floor(Math.random() * gapPlayerMap5.length)][0];
                     break;
                 }
 
@@ -584,7 +605,6 @@ class Gomoku extends AbstractGame {
         return libertiesByUnit;
     }
 
-
     getWinningMovesForCombo(combo) {
         console.log(combo);
         var winningMoves = [];
@@ -642,6 +662,27 @@ class Gomoku extends AbstractGame {
         super.endGame();
     }
 
+    undoMove() {
+        if (!this.gameOver && this.movesPlayed.length > 0) {
+            if (this.gameMode == this.Game_Modes.PVC) {
+                if (this.curPlayer == this.PLAYER_ONE_VAL) {
+                    this.board[this.movesPlayed.pop()] = this.EMPTY_CELL;
+                    this.board[this.movesPlayed.pop()] = this.EMPTY_CELL;
+                }
+                else {
+                    this.board[this.movesPlayed.pop()] = this.EMPTY_CELL;
+                    clearTimeout(this.cpuTurnTimeoutId);
+                    this.changePlayer();
+                }
+            }
+            else {
+                this.board[this.movesPlayed.pop()] = this.EMPTY_CELL;
+                this.changePlayer();
+            }
+            this.drawBoardWithState();
+        }
+    }
+
     showWinningCombos() {
         console.log(this.winningCombos);
         for (let i = 0; i < this.winningCombos.length; i++) {
@@ -664,11 +705,17 @@ window.onresize = () => {
     game_object.boundingRect = game_object.canvas.getBoundingClientRect();
 };
 
+window.onscroll = () => {
+    game_object.boundingRect = game_object.canvas.getBoundingClientRect();
+};
+
 $(document).keypress(e => {
     if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's')
         $("#options-modal").modal("toggle");
     else if (e.key.toLowerCase() == 'r')
         game_object.resetGame();
+    else if (e.key.toLowerCase() == 'u')
+        game_object.undoMove();
 });
 
 // Toggles the hide/show arrows

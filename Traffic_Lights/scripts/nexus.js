@@ -238,6 +238,10 @@ window.onresize = () => {
     game_object.boundingRect = game_object.canvas.getBoundingClientRect();
 };
 
+window.onscroll = () => {
+    game_object.boundingRect = game_object.canvas.getBoundingClientRect();
+};
+
 $(document).keypress(e => {
     if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's')
         $("#options-modal").modal("toggle");

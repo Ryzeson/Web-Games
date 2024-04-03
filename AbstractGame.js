@@ -55,8 +55,9 @@ class AbstractGame {
         this.COMPUTER_VAL = 1;
         this.curPlayer = this.PLAYER_ONE_VAL;
         this.gameOver = false;
-        this.gameMode = this.Game_Modes.PVC;
-        this.cpuDifficulty = this.Difficulties.HARD;
+        this.gameMode = this.Game_Modes.PVP;
+        this.cpuDifficulty = this.Difficulties.NORMAL;
+        this.cpuSpeed = this.Game_Speeds.NORMAL;
         this.cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
 
         ////////////////////////////
@@ -192,7 +193,7 @@ class AbstractGame {
     setCPUMove(param) {
         this.cpuTurnTimeoutId = setTimeout(() => {
             this.takeTurn(param)
-        }, this.Game_Speeds.INSTANT);
+        }, this.cpuSpeed);
     }
 
     //////////////////////////
@@ -216,14 +217,47 @@ class AbstractGame {
     }
 
     updateOptions() {
-        this.cpuDifficulty = this.getCheckedValue("cpu_difficulty");
-        var newGameMode = this.getCheckedValue("game_mode");
-        if (newGameMode != this.gameMode)
-            this.resetGame();
-        this.gameMode = newGameMode;
-        this.updatePlayerLabels();
+        var validOptions = this.getValidOptions();
+        console.log(validOptions);
 
-        $(".options-warning").addClass("invisible");
+        if (validOptions.cpu_difficulty)
+            this.cpuDifficulty = this.getCheckedValue("cpu_difficulty");
+
+        if (validOptions.game_mode) {
+            var newGameMode = this.getCheckedValue("game_mode");
+            if (newGameMode != this.gameMode)
+                this.resetGame();
+            this.gameMode = newGameMode;
+            this.updatePlayerLabels();
+
+            $(".options-warning").addClass("invisible");
+        }
+
+        if (validOptions.cpu_speed) {
+            this.cpuSpeed = this.getCheckedValue("cpu_speed");
+        }
+    }
+
+    // Gets the applicable options from the options form
+    // Takes distinct group names, and creates a map like the example one below
+    // validOptions = {
+    //     "cpu_difficulty" : true,
+    //     "game_mode" : true,
+    //     "cpu_speed" : false
+    // }
+    getValidOptions() {
+        var formInputs = $('#options-form input');
+        var formGroupNames = [];
+        for (let input of formInputs) {
+            var groupName = input.getAttribute('name');
+            if (!formGroupNames.includes(groupName))
+                formGroupNames.push(groupName);
+        }
+        var validOptions = formGroupNames.reduce((acc, curr) => {
+            acc[curr] = true;
+            return acc;
+        }, {});
+        return validOptions
     }
 
     getCheckedValue(groupName) {
