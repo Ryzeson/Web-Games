@@ -10,8 +10,8 @@ class Gomoku extends AbstractGame {
         //////////////////////////
         this.EMPTY_CELL = -1;
 
-        this.nRows = 15;
-        this.nCols = 15;
+        this.nRows = 13;
+        this.nCols = 13;
 
         this.board = [];
         for (let i = 0; i < this.nRows * this.nCols; i++) {
@@ -23,6 +23,9 @@ class Gomoku extends AbstractGame {
 
         this.movesPlayed = [];
 
+        this.placePieceSFX = new Audio("../resources/place_piece.mp3");
+        this.placePieceSFX.volume = 1;
+
         ////////////////////////////
         //                        //
         //    Canvas Constants    //
@@ -31,9 +34,12 @@ class Gomoku extends AbstractGame {
         this.cellHeight = this.cHeight / this.nRows;
         this.cellWidth = this.cWidth / this.nCols;
 
-        this.PLAYER_ONE_COLOR = "white";
-        this.PLAYER_TWO_COLOR = "black";
-        this.CIRCLE_COLOR = this.PLAYER_ONE_COLOR;
+        this.FIRST_TO_MOVE_COLOR = "black";
+        this.SECOND_TO_MOVE_COLOR = "white";
+
+        this.PLAYER_ONE_COLOR = this.FIRST_TO_MOVE_COLOR;
+        this.PLAYER_TWO_COLOR = this.SECOND_TO_MOVE_COLOR;
+        this.CIRCLE_COLOR = this.FIRST_TO_MOVE_COLOR;
         this.BOARD_COLOR = "tan";
         this.BOARD_MARKER_COLOR = "#00000088"; //https://www.digitalocean.com/community/tutorials/css-hex-code-colors-alpha-values
     }
@@ -63,11 +69,22 @@ class Gomoku extends AbstractGame {
             super.drawLine(halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, cWidth - halfCellHeight, ((cHeight / nRows) * i) - halfCellHeight, LINE_COLOR, 2);
 
         // Draw board markers
-        this.drawCellMini(48);
-        this.drawCellMini(56);
-        this.drawCellMini(112);
-        this.drawCellMini(168);
-        this.drawCellMini(176);
+        if (this.nRows >= 9 && this.nCols >= 9) {
+            this.drawCellMini((this.nCols * Math.floor(this.nRows / 2)) + Math.floor(this.nCols / 2)); // center
+        }
+        if (this.nRows >= 13 && this.nCols >= 13) {
+            this.drawCellMini(this.nCols * 3 + 3); // top-left
+            this.drawCellMini(this.nCols * 4 - 4); // top-right
+            this.drawCellMini(this.board.length - (this.nCols * 4) + 3); // bottom-left
+            this.drawCellMini(this.board.length - (this.nCols * 3) - 4); // bottom-right
+        }
+        if (this.nRows >= 19 && this.nCols >= 19) {
+            this.drawCellMini(this.nCols * 3 + Math.floor(this.nCols / 2)); // top-middle
+            this.drawCellMini(this.board.length - (this.nCols * 4) + Math.floor(this.nCols / 2)); // bottom-middle
+            this.drawCellMini((this.nCols * Math.floor(this.nRows / 2)) + 3); // left-middle
+            this.drawCellMini((this.nCols * Math.ceil(this.nRows / 2)) - 4);// right-middle
+        }
+
 
 
         // Debug board
@@ -100,14 +117,26 @@ class Gomoku extends AbstractGame {
     }
 
     resetGame() {
-        super.resetGame();
-
         // Must Implement
+        this.board = [];
         for (let i = 0; i < this.nRows * this.nCols; i++) {
             this.board[i] = this.EMPTY_CELL;
         }
-        this.CIRCLE_COLOR = this.PLAYER_ONE_COLOR;
+        this.CIRCLE_COLOR = this.FIRST_TO_MOVE_COLOR;
+
+        if (this.firstMovePlayer == this.PLAYER_ONE_VAL) {
+            this.PLAYER_ONE_COLOR = this.FIRST_TO_MOVE_COLOR;
+            this.PLAYER_TWO_COLOR = this.SECOND_TO_MOVE_COLOR;
+        }
+        else {
+            this.PLAYER_ONE_COLOR = this.SECOND_TO_MOVE_COLOR;
+            this.PLAYER_TWO_COLOR = this.FIRST_TO_MOVE_COLOR;
+        }
+
         this.movesPlayed = [];
+
+        // Call to super
+        super.resetGame();
     }
 
     // Must Implement (returns a boolean)
@@ -370,9 +399,9 @@ class Gomoku extends AbstractGame {
     takeTurn(cell) {
         // Must Implement
         this.drawCell(cell);
+        this.placePieceSFX.play();
         this.board[cell] = this.curPlayer;
         this.movesPlayed.push(cell);
-        console.log(this.movesPlayed);
 
         // Call to super to end turn
         super.endTurn();
@@ -380,7 +409,7 @@ class Gomoku extends AbstractGame {
 
     changePlayer() {
         super.changePlayer();
-        this.CIRCLE_COLOR = this.curPlayer == 0 ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR;
+        this.CIRCLE_COLOR = this.curPlayer == this.PLAYER_ONE_VAL ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR;
     }
 
     drawCell(cell, color) {
@@ -460,7 +489,7 @@ class Gomoku extends AbstractGame {
                     chosenCell = gapPlayerMap5[Math.floor(Math.random() * gapPlayerMap5.length)][0];
                     break;
                 }
-                
+
                 // If we can make 4 in a row with empty cells at the end, do this so we can win next turn
 
                 // If we have 3 in a row with empty cells at either end, place there
@@ -606,7 +635,6 @@ class Gomoku extends AbstractGame {
     }
 
     getWinningMovesForCombo(combo) {
-        console.log(combo);
         var winningMoves = [];
         var firstInCombo = combo[0];
         var lastInCombo = combo[combo.length - 1];
@@ -665,6 +693,9 @@ class Gomoku extends AbstractGame {
     undoMove() {
         if (!this.gameOver && this.movesPlayed.length > 0) {
             if (this.gameMode == this.Game_Modes.PVC) {
+                // Only undo the player's last move. If the computer starts, then there needs to be at least 2 played pieces for one of them to be the player's
+                if (this.firstMovePlayer == this.COMPUTER_VAL && this.movesPlayed.length <= 1)
+                    return;
                 if (this.curPlayer == this.PLAYER_ONE_VAL) {
                     this.board[this.movesPlayed.pop()] = this.EMPTY_CELL;
                     this.board[this.movesPlayed.pop()] = this.EMPTY_CELL;
@@ -684,7 +715,6 @@ class Gomoku extends AbstractGame {
     }
 
     showWinningCombos() {
-        console.log(this.winningCombos);
         for (let i = 0; i < this.winningCombos.length; i++) {
             for (let j = 0; j < 5; j++) {
                 this.drawCellOutline(this.winningCombos[i][j], "gold");
@@ -726,7 +756,3 @@ $(".collapse-controller").on("click", e => {
     $(arrowIcon).toggleClass("fa-caret-right");
     $(arrowIcon).toggleClass("fa-caret-down");
 })
-
-// let array = [1, 2, 3, 4]
-// for (let a of array)
-//     console.log(a);

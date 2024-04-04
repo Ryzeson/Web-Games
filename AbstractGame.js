@@ -54,6 +54,7 @@ class AbstractGame {
         this.PLAYER_TWO_VAL = 1;
         this.COMPUTER_VAL = 1;
         this.curPlayer = this.PLAYER_ONE_VAL;
+        this.firstMovePlayer = this.PLAYER_ONE_VAL;
         this.gameOver = false;
         this.gameMode = this.Game_Modes.PVP;
         this.cpuDifficulty = this.Difficulties.NORMAL;
@@ -132,12 +133,23 @@ class AbstractGame {
     resetGame() {
         clearTimeout(this.cpuTurnTimeoutId);
         this.gameOver = false;
-        this.curPlayer = 0;
-        $("#p1").addClass("current-player");
-        $("#p2").removeClass("current-player");
+        this.curPlayer = this.firstMovePlayer;
+        if (this.firstMovePlayer == this.PLAYER_ONE_VAL) {
+            $("#p1").addClass("current-player");
+            $("#p2").removeClass("current-player");
+        }
+        else {
+            $("#p1").removeClass("current-player");
+            $("#p2").addClass("current-player");
+        }
+
         $("#play-again-button").addClass("invisible");
 
         this.drawBoard();
+
+        if (this.gameMode == this.Game_Modes.PVC && this.firstMovePlayer == this.COMPUTER_VAL) {
+            this.cpuTurn();
+        }
     }
 
     changePlayer() {
@@ -148,7 +160,7 @@ class AbstractGame {
     displayWinner() {
         const { ctx } = this;
         let text = 'Player ' + (this.curPlayer + 1) + ' wins!';
-        if (this.gameMode == "pvc" && this.curPlayer == 1)
+        if (this.gameMode == "pvc" && this.curPlayer == this.COMPUTER_VAL)
             text = 'Computer wins!';
         let textWidth = ctx.measureText(text).width;
         let textHeight = ctx.measureText('M').width; // cheat to get height
@@ -174,7 +186,7 @@ class AbstractGame {
             this.endGame();
         else {
             this.changePlayer();
-            if (this.gameMode == "pvc" && this.curPlayer == 1)
+            if (this.gameMode == this.Game_Modes.PVC && this.curPlayer == this.COMPUTER_VAL)
                 this.cpuTurn();
         }
     }
@@ -202,7 +214,7 @@ class AbstractGame {
     //                      //
     //////////////////////////
     handleClick(e) {
-        if (!this.gameOver && (this.gameMode == this.Game_Modes.PVP || (this.gameMode == this.Game_Modes.PVC && this.curPlayer == 0))) {
+        if (!this.gameOver && (this.gameMode == this.Game_Modes.PVP || (this.gameMode == this.Game_Modes.PVC && this.curPlayer == this.PLAYER_ONE_VAL))) {
             const clickX = e.clientX - this.boundingRect.left;
             const clickY = e.clientY - this.boundingRect.top;
             this.gameHandleClick(clickX, clickY)
@@ -210,15 +222,19 @@ class AbstractGame {
     }
 
     optionsListener() {
-        if (this.getCheckedValue("game_mode") != this.gameMode)
+        var gameModeChanged = this.getCheckedValue("game_mode") != this.gameMode;
+        var firstMoveChanged = this.getCheckedValue("first_move") != this.firstMovePlayer;
+        var boardDimensionsChanged = this.getCheckedValue("board_dimensions") != this.nRows;
+        if (gameModeChanged || firstMoveChanged || boardDimensionsChanged)
             $(".options-warning").removeClass("invisible");
         else
             $(".options-warning").addClass("invisible");
+
     }
 
     updateOptions() {
+        var resetGameFlag = false;
         var validOptions = this.getValidOptions();
-        console.log(validOptions);
 
         if (validOptions.cpu_difficulty)
             this.cpuDifficulty = this.getCheckedValue("cpu_difficulty");
@@ -226,7 +242,7 @@ class AbstractGame {
         if (validOptions.game_mode) {
             var newGameMode = this.getCheckedValue("game_mode");
             if (newGameMode != this.gameMode)
-                this.resetGame();
+                resetGameFlag = true;
             this.gameMode = newGameMode;
             this.updatePlayerLabels();
 
@@ -234,8 +250,27 @@ class AbstractGame {
         }
 
         if (validOptions.cpu_speed) {
-            this.cpuSpeed = this.getCheckedValue("cpu_speed");
+            this.cpuSpeed = parseInt(this.getCheckedValue("cpu_speed"));
         }
+
+        if (validOptions.first_move) {
+            var newFirstMovePlayer = parseInt(this.getCheckedValue("first_move"));
+            if (newFirstMovePlayer != this.firstMovePlayer)
+                resetGameFlag = true;
+            this.firstMovePlayer = newFirstMovePlayer;
+        }
+
+        if(validOptions.board_dimensions) {
+            var dimensions = parseInt(this.getCheckedValue("board_dimensions"));
+            if (dimensions != this.nRows)
+                resetGameFlag = true;
+            this.nRows = dimensions;
+            this.nCols = dimensions;
+            this.cellHeight = this.cHeight / this.nRows;
+            this.cellWidth = this.cWidth / this.nCols;
+        }
+
+        if (resetGameFlag) this.resetGame();
     }
 
     // Gets the applicable options from the options form

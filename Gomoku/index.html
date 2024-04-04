@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gomoku!</title>
+    <title>Gomoku</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
     <!-- Add Font Awesome CSS for icons -->
@@ -99,6 +99,26 @@
                             <input type="radio" name="game_mode" value="pvc"> Player vs Computer
                             <br>
                         </div>
+                        <div class="hidden" id="first-move-section">
+                            <strong>First Move (Black):</strong><br>
+                            <input type="radio" name="first_move" value="0" checked> Player 1
+                            <br>
+                            <input type="radio" name="first_move" value="1"> Player 2 / Computer
+                        </div>
+                        <div class="hidden" id="board-dimensions-section">
+                            <strong>Board Dimensions:</strong><br>
+                            <input type="radio" name="board_dimensions" value="9"> 9x9
+                            <br>
+                            <input type="radio" name="board_dimensions" value="11"> 11x11
+                            <br>
+                            <input type="radio" name="board_dimensions" value="13" checked> 13x13
+                            <br>
+                            <input type="radio" name="board_dimensions" value="15"> 15x15
+                            <br>
+                            <input type="radio" name="board_dimensions" value="17"> 17x17
+                            <br>
+                            <input type="radio" name="board_dimensions" value="19"> 19x19
+                        </div>
                         <div class="hidden" id="cpu-difficulty-section">
                             <strong>Computer Difficulty:</strong><br>
                             <input type="radio" name="cpu_difficulty" value="easy" checked> Easy
@@ -112,7 +132,7 @@
                             <input type="radio" name="cpu_speed" value="0"> Instant
                         </div>
                     </form>
-                    <h2 class="options-warning invisible">Changing the game mode will reset your current game!</h2>
+                    <h2 class="options-warning invisible">Changing these options will reset your current game!</h2>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal"
