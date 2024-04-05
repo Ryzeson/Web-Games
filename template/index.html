@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TODO: Game Name</title>
+    <title>Gomoku</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
     <!-- Add Font Awesome CSS for icons -->
@@ -17,7 +17,7 @@
     <div class="container pt-4">
         <div class="row justify-content-center">
             <div class="column d-flex justify-content-center pb-1">
-                <h1 class="text-white">TODO: Game Name</h1>
+                <h1 class="text-white">Gomoku</h1>
             </div>
         </div>
         <div class="row justify-content-center">
@@ -35,16 +35,21 @@
                                     class="fas fa-caret-right ml-2"></i>
                             </h2>
                         </div>
-                        <i class="fas fa-cog fa mr-3 info-interactable" data-toggle="modal" data-target="#options-modal"
+                        <i class="fas fa-cog fa mr-3 info-interactable info-icon" data-toggle="modal" data-target="#options-modal"
                             id="options-gear"></i>
                     </div>
                     <div class="collapse" id="rules"> <!-- use 'show' to have the content displayed be default-->
-                        TODO: Explain rules.
+                        Be the first player to place five pieces in a row either horizontally, vertically, or
+                        diagonally.
                         <br><br>
                         <h2 class="rules-heading">Controls</h2>
-                        TODO: Explain controls.<br>
-                        Press the "R" key to reset the game.<br>
-                        Press the "O" key to toggle the options menu.<br>
+                        Click a cell to place a piece.<br>
+                        <br>
+                        <h2 class="rules-heading">Keyboard Shortcuts</h2>
+                        <strong><u>R</u></strong>eset the game.<br>
+                        <strong><u>U</u></strong>ndo your last move.<br>
+                        Toggle <strong><u>O</u></strong>ptions menu.<br>
+                        Toggle <strong><u>S</u></strong>ound on/off.<br>
                     </div>
                 </div>
                 <div class="info-container-right">
@@ -64,12 +69,14 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center py-5">
+        <div class="row justify-content-center py-2">
             <div class="column">
                 <div class="d-flex">
                     <span class="m-auto" id="credits">© 2024 Ryzeson Maravich
-                        <a href="https://github.com/Ryzeson" target="_blank" class="text-white ml-1"><i class="fab fa-github fa-lg"></i></a>
-                        <a href="https://www.ryzeson.org" target="_blank" class="text-white ml-1"><i class="fa-solid fa-house fa-lg"></i></a>
+                        <a href="https://github.com/Ryzeson" target="_blank" class="text-white ml-1"><i
+                                class="fab fa-github fa-lg"></i></a>
+                        <a href="https://www.ryzeson.org" target="_blank" class="text-white ml-1"><i
+                                class="fa-solid fa-house fa-lg"></i></a>
                     </span>
                 </div>
             </div>
@@ -88,22 +95,57 @@
                 </div>
                 <div class="modal-body">
                     <form id="options-form" onchange="game_object.optionsListener()">
-                        <strong>Game Mode:</strong><br>
-                        <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
-                        <br>
-                        <input type="radio" name="game_mode" value="pvc"> Player vs Computer
-                        <br>
+                        <div class="hidden" id="game-mode-section">
+                            <strong>Game Mode:</strong><br>
+                            <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
+                            <br>
+                            <input type="radio" name="game_mode" value="pvc"> Player vs Computer
+                            <br>
+                        </div>
+                        <div class="hidden" id="first-move-section">
+                            <strong>First Move (Black):</strong><br>
+                            <input type="radio" name="first_move" value="0" checked> Player 1
+                            <br>
+                            <input type="radio" name="first_move" value="1"> Player 2 / Computer
+                        </div>
+                        <div class="hidden" id="board-dimensions-section">
+                            <strong>Board Dimensions:</strong><br>
+                            <input type="radio" name="board_dimensions" value="9"> 9x9
+                            <br>
+                            <input type="radio" name="board_dimensions" value="11"> 11x11
+                            <br>
+                            <input type="radio" name="board_dimensions" value="13"> 13x13
+                            <br>
+                            <input type="radio" name="board_dimensions" value="15" checked> 15x15
+                            <br>
+                            <input type="radio" name="board_dimensions" value="17"> 17x17
+                            <br>
+                            <input type="radio" name="board_dimensions" value="19"> 19x19
+                        </div>
                         <div class="hidden" id="cpu-difficulty-section">
                             <strong>Computer Difficulty:</strong><br>
                             <input type="radio" name="cpu_difficulty" value="easy" checked> Easy
                             <br>
                             <input type="radio" name="cpu_difficulty" value="hard"> Hard
                         </div>
+                        <div class="hidden" id="cpu-speed-section">
+                            <strong>Computer Speed:</strong><br>
+                            <input type="radio" name="cpu_speed" value="1100" checked> Normal
+                            <br>
+                            <input type="radio" name="cpu_speed" value="0"> Instant
+                        </div>
+                        <div class="hidden" id="sound-section">
+                            <strong>Sound:</strong><br>
+                            <input type="radio" name="sound" value="on" checked> On
+                            <br>
+                            <input type="radio" name="sound" value="off"> Off
+                        </div>
                     </form>
-                    <h2 class="options-warning invisible">Changing the game mode will reset your current game!</h2>
+                    <h2 class="options-warning invisible">Changing these options will reset your current game!</h2>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="game_object.updateOptions()">Save
+                    <button type="button" class="btn btn-primary" data-dismiss="modal"
+                        onclick="game_object.updateOptions()">Save
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>

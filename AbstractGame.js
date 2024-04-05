@@ -50,6 +50,8 @@ class AbstractGame {
             INSTANT: 0
         });
 
+        this.validOptions;
+
         this.PLAYER_ONE_VAL = 0;
         this.PLAYER_TWO_VAL = 1;
         this.COMPUTER_VAL = 1;
@@ -57,9 +59,10 @@ class AbstractGame {
         this.firstMovePlayer = this.PLAYER_ONE_VAL;
         this.gameOver = false;
         this.gameMode = this.Game_Modes.PVP;
-        this.cpuDifficulty = this.Difficulties.NORMAL;
+        this.cpuDifficulty = this.Difficulties.EASY;
         this.cpuSpeed = this.Game_Speeds.NORMAL;
         this.cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
+        this.sound = true;
 
         ////////////////////////////
         //                        //
@@ -222,19 +225,28 @@ class AbstractGame {
     }
 
     optionsListener() {
-        var gameModeChanged = this.getCheckedValue("game_mode") != this.gameMode;
-        var firstMoveChanged = this.getCheckedValue("first_move") != this.firstMovePlayer;
-        var boardDimensionsChanged = this.getCheckedValue("board_dimensions") != this.nRows;
+        const { validOptions } = this;
+        var gameModeChanged = false;
+        var firstMoveChanged = false;
+        var boardDimensionsChanged = false;
+
+        if (validOptions.game_mode)
+            gameModeChanged = this.getCheckedValue("game_mode") != this.gameMode;
+        if (validOptions.first_move)
+            firstMoveChanged = this.getCheckedValue("first_move") != this.firstMovePlayer;
+        if (validOptions.board_dimensions)
+            boardDimensionsChanged = this.getCheckedValue("board_dimensions") != this.nRows;
+
         if (gameModeChanged || firstMoveChanged || boardDimensionsChanged)
             $(".options-warning").removeClass("invisible");
         else
             $(".options-warning").addClass("invisible");
-
     }
 
     updateOptions() {
+        const { validOptions } = this;
+
         var resetGameFlag = false;
-        var validOptions = this.getValidOptions();
 
         if (validOptions.cpu_difficulty)
             this.cpuDifficulty = this.getCheckedValue("cpu_difficulty");
@@ -260,7 +272,7 @@ class AbstractGame {
             this.firstMovePlayer = newFirstMovePlayer;
         }
 
-        if(validOptions.board_dimensions) {
+        if (validOptions.board_dimensions) {
             var dimensions = parseInt(this.getCheckedValue("board_dimensions"));
             if (dimensions != this.nRows)
                 resetGameFlag = true;
@@ -269,6 +281,9 @@ class AbstractGame {
             this.cellHeight = this.cHeight / this.nRows;
             this.cellWidth = this.cWidth / this.nCols;
         }
+
+        if (validOptions.sound)
+            this.sound = this.getCheckedValue("sound") == 'on';
 
         if (resetGameFlag) this.resetGame();
     }
@@ -317,6 +332,10 @@ class AbstractGame {
 
     addPlayAgainButton() {
         $("#play-again-button").removeClass("invisible");
+    }
+
+    toggleSound() {
+        this.sound = !this.sound;
     }
 
     drawBoard() {

@@ -228,6 +228,7 @@ class TrafficLights extends AbstractGame {
 
 game_object = new TrafficLights();
 game_object.startGame();
+game_object.validOptions = game_object.getValidOptions();
 
 //////////////////////////
 //                      //
