@@ -14,14 +14,6 @@ body {
     background-color: var(--color1);
 }
 
-#game-container {
-    height: 700px;
-}
-
-.column {
-    width: 700px;
-}
-
 .column-left {
     width: 60%;
 }

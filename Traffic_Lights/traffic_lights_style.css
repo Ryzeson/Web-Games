@@ -1,0 +1,17 @@
+:root {
+    --color1: #353535;
+    --color2: #FFFFFF;
+    --color3: #D2D7DF;
+    --color4: #BDBBB0;
+    --color5: #8A897C;
+    --color6: #4f4f4f;
+    --color7: rgb(69, 68, 68);
+}
+
+#game-container {
+    height: 600px;
+}
+
+.column {
+    width: 800px;
+}

@@ -34,11 +34,92 @@ let playerCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 let opCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 let prizeCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
-const GAME_SPEED = 20; // Wait time for animations in miliseconds (default 2000)
+var game_speed = 1100; // Wait time for animations in miliseconds (default 2000)
+var cpu_strategy = 1;
+
+// Bid arrays, used for cpu_strategy 3
+var bidArray = [];
+const bidArarys = [
+    [0, 1, 2, 3, 5, 4, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 2, 1, 4, 3, 5, 6, 7, 9, 8, 10, 12, 11, 13],
+[0, 2, 1, 3, 5, 4, 7, 6, 9, 8, 10, 11, 13, 12],
+[0, 1, 3, 2, 5, 4, 7, 6, 8, 10, 9, 12, 11, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 9, 8, 11, 10, 12, 13],
+[0, 2, 1, 4, 3, 5, 6, 7, 8, 10, 9, 11, 12, 13],
+[0, 1, 2, 4, 3, 6, 5, 8, 7, 9, 10, 12, 11, 13],
+[0, 2, 1, 3, 4, 5, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 5, 4, 6, 7, 9, 8, 10, 11, 12, 13],
+[0, 2, 1, 4, 3, 5, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 9, 8, 10, 11, 13, 12],
+[0, 2, 1, 3, 5, 4, 7, 6, 9, 8, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 5, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 2, 1, 3, 5, 4, 6, 7, 9, 8, 10, 11, 13, 12],
+[0, 1, 3, 2, 4, 5, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 11, 10, 12, 13],
+[0, 2, 1, 4, 3, 5, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 1, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 12, 13],
+[0, 2, 1, 3, 4, 5, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 10, 11, 13, 12],
+[0, 1, 2, 4, 3, 5, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 2, 1, 4, 3, 5, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 1, 3, 2, 5, 4, 6, 7, 8, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 5, 7, 6, 8, 10, 9, 11, 13, 12],
+[0, 2, 1, 3, 5, 4, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 6, 5, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 10, 12, 11, 13],
+[0, 2, 1, 3, 4, 6, 5, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 8, 9, 11, 10, 12, 13],
+[0, 2, 1, 3, 5, 4, 7, 6, 9, 8, 10, 11, 12, 13],
+[0, 1, 3, 2, 4, 5, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 5, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 2, 1, 3, 5, 4, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 5, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 2, 1, 3, 4, 6, 5, 7, 9, 8, 11, 10, 12, 13],
+[0, 1, 3, 2, 5, 4, 6, 7, 9, 8, 11, 10, 12, 13],
+[0, 2, 1, 4, 3, 5, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 8, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 10, 12, 11, 13],
+[0, 2, 1, 4, 3, 5, 6, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 2, 3, 5, 4, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 4, 5, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 2, 1, 4, 3, 5, 6, 7, 8, 10, 9, 12, 11, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 3, 2, 5, 4, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 2, 1, 3, 4, 5, 7, 6, 9, 8, 10, 12, 11, 13],
+[0, 1, 2, 4, 3, 5, 6, 7, 9, 8, 11, 10, 12, 13],
+[0, 1, 3, 2, 5, 4, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 2, 1, 3, 4, 5, 6, 7, 9, 8, 10, 12, 11, 13],
+[0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10, 11, 13, 12],
+[0, 1, 3, 2, 4, 5, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 2, 1, 3, 5, 4, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 9, 8, 10, 12, 11, 13],
+[0, 2, 1, 3, 4, 5, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 1, 3, 2, 5, 4, 6, 7, 8, 9, 10, 12, 11, 13],
+[0, 1, 2, 4, 3, 5, 6, 7, 9, 8, 10, 11, 12, 13],
+[0, 2, 1, 3, 5, 4, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 1, 3, 2, 4, 6, 5, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 5, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 2, 1, 3, 5, 4, 6, 8, 7, 9, 10, 12, 11, 13],
+[0, 1, 3, 2, 4, 5, 6, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 2, 4, 3, 5, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 2, 1, 3, 5, 4, 7, 6, 8, 9, 10, 12, 11, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 8, 9, 11, 10, 12, 13],
+[0, 2, 1, 3, 5, 4, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 2, 4, 3, 5, 6, 7, 9, 8, 10, 12, 11, 13],
+[0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 11, 10, 12, 13],
+[0, 2, 1, 3, 5, 4, 7, 6, 8, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 6, 5, 7, 9, 8, 10, 11, 12, 13],
+[0, 1, 3, 2, 5, 4, 6, 7, 9, 8, 11, 10, 12, 13],
+[0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 11, 10, 12, 13],
+[0, 1, 2, 4, 3, 5, 6, 8, 7, 9, 11, 10, 12, 13],
+[0, 1, 3, 2, 5, 4, 7, 6, 9, 8, 10, 11, 12, 13]
+];
 
 // Set the card dimensions
 const cardDim = 5 / 7;
-const cardWidth = 35;
+const cardWidth = 52;
 const cardHeight = cardWidth / cardDim;
 const cornerRadius = 5;
 const cardColor = "white";
@@ -53,10 +134,10 @@ const prizeX = (canvasWidth - cardWidth) / 2;
 const prizeY = (canvasHeight - cardHeight) / 2;
 const prizeCardOffset = cardWidth / 2;
 
-const boardColor = '#CFF5F1';
+const boardColor = '#D2D7DF';
 const TEXT_BOX_COLOR = 'rgba(208, 211, 218, 0.8)';
 // Set font size
-const cardFont = "10px serif";
+const cardFont = "14px serif";
 const winFont = "48px serif";
 
 const PLAYER_ONE = 0;
@@ -137,8 +218,8 @@ async function initBout() {
     $("canvas").off("click", handleMouseMove);
     setTimeout(() => {
         $("canvas").on("click", handleMouseMove);
-    }, GAME_SPEED + 1);
-    await sleep(GAME_SPEED);
+    }, game_speed + 1);
+    await sleep(game_speed);
 
     if (playerCard > opCard) {
         updateScore(PLAYER_ONE);
@@ -188,6 +269,7 @@ function deleteCardAnim(cardN, playerNum) {
 
         ctx.lineWidth = origLineWidth;
     }
+    playerTieCards = [];
 }
 
 function opTurn() {
@@ -198,10 +280,97 @@ function opTurn() {
 }
 
 function opChooseCard() {
-    // Default opponent strategy is to pick a random card
-    let randomNum = Math.floor(Math.random() * opCards.length);
-    // let randomNum = 0;
-    return opCards[randomNum];
+    let selectedCard = 0; // Default/testing strategy
+    if (cpu_strategy == 1) {
+        selectedCard = Math.floor(Math.random() * opCards.length);
+    }
+    else if (cpu_strategy == 2) { // Pick a random card
+        let r = Math.random();
+        if (r < .2) {
+            selectedCard = Math.floor(Math.random() * opCards.length);
+        }
+        else {
+            let r = Math.random();
+            if (r < .3) {
+                selectedCard = findClosestCard(prizeStack[0]);
+            }
+            else if (r < .5) {
+                selectedCard = findClosestCard(prizeStack[0] + 1);
+            }
+            else if (r < .7) {
+                selectedCard = findClosestCard(prizeStack[0] - 1);
+            }
+            else if (r < .9) {
+                selectedCard = findClosestCard(prizeStack[0] + 2);
+            }
+            else {
+                selectedCard = findClosestCard(prizeStack[0] + 3);
+            }
+        }
+        if (prizeStack.length > 1) {
+            let r = Math.random();
+            let willNotLoseTie = willNotLoseTieCheck();
+            if (r < .5 || willNotLoseTie)
+                selectedCard = opCards.length - 1;
+            else if (r < .9)
+                selectedCard = 0;
+        }
+        var total = 0;
+        for (let i = 0; i < prizeStack.length; i++) {
+            total += prizeStack[i];
+        }
+        if (total <= 3)
+            selectedCard = 0;
+    }
+    else if (cpu_strategy == 3) {
+        let selectedCardVal = bidArray[prizeStack[prizeStack.length - 1]];
+        selectedCard = opCards.indexOf(selectedCardVal);
+        if (selectedCard == -1)
+            selectedCard = Math.floor(Math.random() * opCards.length);
+        if (prizeStack.length > 1) {
+            let r = Math.random();
+            let willNotLoseTie = willNotLoseTieCheck();
+            if (r < .5 || willNotLoseTie)
+                selectedCard = opCards.length - 1;
+            else if (r < .9)
+                selectedCard = 0;
+        }
+    }
+    else {
+        console.log("No difficulty selected!");
+    }
+
+    return opCards[selectedCard];
+}
+
+function findClosestCard(valToFind) {
+    var cardIndex = -1;
+    var increment = 1;
+    while (cardIndex == -1) {
+        cardIndex = opCards.indexOf(valToFind);
+        if (increment % 2 == 0) {
+            valToFind -= increment;
+        }
+        else {
+            valToFind += increment
+        }
+        increment++;
+    }
+    return cardIndex;
+}
+
+function willNotLoseTieCheck() {
+    var allPlayerCards = [];
+    for (let i = 0; i < playerCards.length; i++) {
+        allPlayerCards[i] = playerCards[i];
+    }
+    allPlayerCards.push(playerCard);
+    allPlayerCards.sort((a, b) => a - b);
+    for (let i = opCards.length; i >= 0; i--) {
+        if (opCards[i] != allPlayerCards[i])
+            return opCards[i] > playerCards[i];
+    }
+    return true;
 }
 
 function newTurn() {
@@ -214,8 +383,10 @@ function newTurn() {
         deleteCardAnim(opCard, PLAYER_TWO);
     }
 
-    if (gameOver)
+    if (gameOver) {
+        addPlayAgainButton();
         displayWinner();
+    }
 }
 
 function updateScore(playerNum) {
@@ -241,8 +412,10 @@ function displayWinner() {
     if (pScore == opScore)
         text = 'Draw!';
     else {
-        let winner = pScore > opScore ? PLAYER_ONE : PLAYER_TWO;
-        text = 'Player ' + (winner + 1) + ' wins!';
+        if (pScore > opScore)
+            text = 'You win!';
+        else
+            text = 'Computer wins!';
     }
 
     ctx.font = winFont;
@@ -306,6 +479,34 @@ function beginGame() {
         // Draw opponent hand
         drawCard(startingX + (i * (cardWidth + spaceBetweenCards)), opStartingY, opCardColor, i, opCardColor);
     }
+
+    if (cpu_strategy == 3)
+        bidArray = bidArarys[Math.floor(Math.random() * bidArarys.length)];
+
+    removePlayAgainButton();
+}
+
+function resetGame() {
+    gameOver = false;
+    playerCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    opCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    prizeCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    pScore = 0;
+    opScore = 0;
+    playerCard = null;
+    opCard = null;
+    nTies = 0;
+    playerTieCards = [];
+    opTieCards = [];
+    prizeStack = [];
+
+    ctx.fillStyle = boardColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    displayScore(PLAYER_ONE);
+    displayScore(PLAYER_TWO);
+
+
+    beginGame();
 }
 
 
@@ -316,9 +517,31 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/*
-    LISTENERS
-*/
+//////////////////////////
+//                      //
+//    Listeners + UI    //
+//                      //
+//////////////////////////
+$(document).keypress(e => {
+    if (e.key.toLowerCase() == 'o')
+        $("#options-modal").modal("toggle");
+    else if (e.key.toLowerCase() == 'r')
+        resetGame();
+    // else if (e.key.toLowerCase() == 'u')
+    //     game_object.undoMove();
+    // else if (e.key.toLowerCase() == 's')
+    //     game_object.toggleSound();
+});
+
+// Toggles the hide/show arrows
+$(".collapse-controller").on("click", e => {
+    let arrowIcon = $(e.target);
+    if ($(e.target).children().length > 0)
+        arrowIcon = $(e.target).children()[0];
+    $(arrowIcon).toggleClass("fa-caret-right");
+    $(arrowIcon).toggleClass("fa-caret-down");
+})
+
 function handleMouseMove(e) {
     const clickX = e.clientX - canvas.getBoundingClientRect().left;
     const clickY = e.clientY - canvas.getBoundingClientRect().top;
@@ -326,12 +549,44 @@ function handleMouseMove(e) {
 
     console.log("Player hand: " + playerCards);
     console.log("Opponent hand: " + opCards);
-
 }
 
 $("canvas").on("click", handleMouseMove);
 
-/*
-    BEGIN GAME
-*/
+function addPlayAgainButton() {
+    $("#play-again-button").removeClass("invisible");
+}
+
+function removePlayAgainButton() {
+    $("#play-again-button").addClass("invisible");
+}
+
+///////////////////
+//               //
+//    Options    //
+//               //
+///////////////////
+function updateOptions() {
+    cpu_strategy = this.getCheckedValue("cpu_strategy");
+    game_speed = parseInt(this.getCheckedValue("cpu_speed"));
+    // this.sound = this.getCheckedValue("sound") == 'on';
+}
+
+function getCheckedValue(groupName) {
+    var form = $("#options-form")[0];
+    var inputs = [...form.elements[groupName]]; //https://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
+    var checkedValue;
+    inputs.forEach(input => {
+        if (input.checked) {
+            checkedValue = input.value;
+        }
+    })
+    return checkedValue;
+}
+
+//////////////////////
+//                  //
+//    Begin Game    //
+//                  //
+//////////////////////
 beginGame();

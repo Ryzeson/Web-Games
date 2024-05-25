@@ -146,7 +146,7 @@ class AbstractGame {
             $("#p2").addClass("current-player");
         }
 
-        $("#play-again-button").addClass("invisible");
+        this.removePlayAgainButton();
 
         this.drawBoard();
 
@@ -289,11 +289,10 @@ class AbstractGame {
     }
 
     // Gets the applicable options from the options form
-    // Takes distinct group names, and creates a map like the example one below
+    // Takes distinct input group names from the options modal, and creates a map like the example one below
     // validOptions = {
     //     "cpu_difficulty" : true,
-    //     "game_mode" : true,
-    //     "cpu_speed" : false
+    //     "game_mode" : true
     // }
     getValidOptions() {
         var formInputs = $('#options-form input');
@@ -332,6 +331,10 @@ class AbstractGame {
 
     addPlayAgainButton() {
         $("#play-again-button").removeClass("invisible");
+    }
+
+    removePlayAgainButton() {
+        $("#play-again-button").addClass("invisible");
     }
 
     toggleSound() {
