@@ -55,13 +55,14 @@ class TrafficLights extends AbstractGame {
 
     // Must Implement
     gameHandleClick(clickX, clickY) {
-
+        
     }
 
 }
 
 game_object = new TrafficLights();
 game_object.startGame();
+game_object.validOptions = game_object.getValidOptions();
 
 //////////////////////////
 //                      //
@@ -69,14 +70,22 @@ game_object.startGame();
 //                      //
 //////////////////////////
 window.onresize = () => {
-    boundingRect = game_object.canvas.getBoundingClientRect();
+    game_object.boundingRect = game_object.canvas.getBoundingClientRect();
+};
+
+window.onscroll = () => {
+    game_object.boundingRect = game_object.canvas.getBoundingClientRect();
 };
 
 $(document).keypress(e => {
-    if (e.key.toLowerCase() == 'o' || e.key.toLowerCase() == 's')
+    if (e.key.toLowerCase() == 'o')
         $("#options-modal").modal("toggle");
     else if (e.key.toLowerCase() == 'r')
         game_object.resetGame();
+    else if (e.key.toLowerCase() == 'u')
+        game_object.undoMove();
+    else if (e.key.toLowerCase() == 's')
+        game_object.toggleSound();
 });
 
 // Toggles the hide/show arrows

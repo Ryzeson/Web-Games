@@ -57,6 +57,7 @@ class AbstractGame {
         this.COMPUTER_VAL = 1;
         this.curPlayer = this.PLAYER_ONE_VAL;
         this.firstMovePlayer = this.PLAYER_ONE_VAL;
+        this.secondMovePlayer = this.PLAYER_TWO_VAL;
         this.gameOver = false;
         this.gameMode = this.Game_Modes.PVP;
         this.cpuDifficulty = this.Difficulties.EASY;
