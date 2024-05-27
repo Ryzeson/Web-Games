@@ -701,6 +701,10 @@ class Gomoku extends AbstractGame {
         return combos.length > 0;
     }
 
+    setWinningPlayer() {
+        this.winningPlayer = this.curPlayer;
+    }
+
     endGame() {
         this.showWinningCombos();
         super.endGame();

@@ -13,5 +13,10 @@
 }
 
 .column {
-    width: 700px;
+    width: 62%;
+}
+
+.column-side {
+    color: var(--color2);
+    width: 19%;
 }

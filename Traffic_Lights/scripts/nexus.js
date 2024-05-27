@@ -144,6 +144,10 @@ class TrafficLights extends AbstractGame {
         super.endTurn();
     }
 
+    setWinningPlayer() {
+        this.winningPlayer = this.curPlayer;
+    }
+
     /////////////////////////////////
     //                             //
     //    Computer Player Logic    //

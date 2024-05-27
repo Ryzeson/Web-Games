@@ -59,6 +59,7 @@ class AbstractGame {
         this.firstMovePlayer = this.PLAYER_ONE_VAL;
         this.secondMovePlayer = this.PLAYER_TWO_VAL;
         this.gameOver = false;
+        this.winningPlayer;
         this.gameMode = this.Game_Modes.PVP;
         this.cpuDifficulty = this.Difficulties.EASY;
         this.cpuSpeed = this.Game_Speeds.NORMAL;
@@ -163,7 +164,11 @@ class AbstractGame {
 
     displayWinner() {
         const { ctx } = this;
-        let text = 'Player ' + (this.curPlayer + 1) + ' wins!';
+        let text;
+        if (this.winningPlayer == -1)
+            text = "Draw!";
+        else
+            text = 'Player ' + (this.winningPlayer + 1) + ' wins!';
         if (this.gameMode == "pvc" && this.curPlayer == this.COMPUTER_VAL)
             text = 'Computer wins!';
         let textWidth = ctx.measureText(text).width;
@@ -197,6 +202,7 @@ class AbstractGame {
 
     endGame() {
         this.gameOver = true;
+        this.setWinningPlayer();
         this.displayWinner();
         this.addPlayAgainButton();
     }
