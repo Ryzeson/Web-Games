@@ -103,9 +103,9 @@
                     <form id="options-form" onchange="game_object.optionsListener()">
                         <div class="hidden" id="game-mode-section">
                             <strong>Game Mode:</strong><br>
-                            <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
+                            <input type="radio" name="game_mode" value="pvp"> Player vs Player
                             <br>
-                            <input type="radio" name="game_mode" value="pvc"> Player vs Computer
+                            <input type="radio" name="game_mode" value="pvc" checked> Player vs Computer
                             <br>
                         </div>
                         <div class="hidden" id="first-move-section">
@@ -116,17 +116,15 @@
                         </div>
                         <div class="hidden" id="board-dimensions-section">
                             <strong>Board Dimensions:</strong><br>
-                            <input type="radio" name="board_dimensions" value="9"> 9x9
+                            <input type="radio" name="board_dimensions" value="4" checked> 4x4
                             <br>
-                            <input type="radio" name="board_dimensions" value="11"> 11x11
+                            <input type="radio" name="board_dimensions" value="6"> 6x6
                             <br>
-                            <input type="radio" name="board_dimensions" value="13"> 13x13
+                            <input type="radio" name="board_dimensions" value="8"> 8x8
                             <br>
-                            <input type="radio" name="board_dimensions" value="15" checked> 15x15
+                            <input type="radio" name="board_dimensions" value="10"> 10x10
                             <br>
-                            <input type="radio" name="board_dimensions" value="17"> 17x17
-                            <br>
-                            <input type="radio" name="board_dimensions" value="19"> 19x19
+                            <input type="radio" name="board_dimensions" value="12"> 12x12
                         </div>
                         <!-- <div class="hidden" id="cpu-difficulty-section">
                             <strong>Computer Difficulty:</strong><br>
@@ -136,9 +134,9 @@
                         </div> -->
                         <div class="hidden" id="cpu-speed-section">
                             <strong>Computer Speed:</strong><br>
-                            <input type="radio" name="cpu_speed" value="1100" checked> Normal
+                            <input type="radio" name="cpu_speed" value="1100"> Normal
                             <br>
-                            <input type="radio" name="cpu_speed" value="0"> Instant
+                            <input type="radio" name="cpu_speed" value="0" checked> Instant
                         </div>
                         <div class="hidden" id="sound-section">
                             <strong>Sound:</strong><br>

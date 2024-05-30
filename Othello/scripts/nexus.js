@@ -10,17 +10,15 @@ class Othello extends AbstractGame {
         //////////////////////////
         this.EMPTY_CELL = -1;
 
-        this.nRows = 8;
-        this.nCols = 8;
+        this.nRows = 4;
+        this.nCols = 4;
 
-        this.board = [];
-        for (let i = 0; i < this.nRows * this.nCols; i++)
-            this.board[i] = this.EMPTY_CELL;
+        this.initEmptyBoard();
 
         this.possibleMoves;
         this.previousMoveSkipped = false;
 
-        this.movesPlayed = [];
+        this.flippedPiecesHistory = [];
 
         this.placePieceSFX = new Audio("../resources/place_piece.mp3");
         this.placePieceSFX.volume = 1;
@@ -47,6 +45,12 @@ class Othello extends AbstractGame {
 
     }
 
+    initEmptyBoard() {
+        this.board = [];
+        for (let i = 0; i < this.nRows * this.nCols; i++)
+            this.board[i] = this.EMPTY_CELL;
+    }
+
     // Must Implement
     drawBoard() {
         const { cWidth } = this;
@@ -67,15 +71,15 @@ class Othello extends AbstractGame {
         for (let i = 1; i < nRows; i++)
             super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
 
-        // for (let cell in this.board) {
-        //     var cellRow = Math.floor(cell / this.nCols);
-        //     var cellCol = cell % this.nCols;
-        //     var textX = (cellCol * cellWidth) + 2;
-        //     var textY = (cellRow * cellHeight) + 20;
-        //     this.ctx.fillStyle = "black";
-        //     this.ctx.font = "20px sans-serif";
-        //     this.ctx.fillText(cell, textX, textY);
-        // };
+        for (let cell in this.board) {
+            var cellRow = Math.floor(cell / this.nCols);
+            var cellCol = cell % this.nCols;
+            var textX = (cellCol * cellWidth) + 2;
+            var textY = (cellRow * cellHeight) + 20;
+            this.ctx.fillStyle = "black";
+            this.ctx.font = "20px sans-serif";
+            this.ctx.fillText(cell, textX, textY);
+        };
 
         // Draw board markers
         // if (this.nRows >= 9 && this.nCols >= 9) {
@@ -151,10 +155,23 @@ class Othello extends AbstractGame {
         super.resetGame();
 
         // Must Implement
-        this.board = [];
-        this.possibleMoves = new Map();
+        this.initEmptyBoard();
         this.previousMoveSkipped = false;
+        this.resetPlayerColors();
         this.startGame();
+    }
+
+    resetPlayerColors() {
+        // Set players' colors based on who moves first
+        if (this.firstMovePlayer == this.PLAYER_ONE_VAL) {
+            this.PLAYER_ONE_COLOR = this.FIRST_TO_MOVE_COLOR;
+            this.PLAYER_TWO_COLOR = this.SECOND_TO_MOVE_COLOR;
+        }
+        else {
+            this.PLAYER_ONE_COLOR = this.SECOND_TO_MOVE_COLOR;
+            this.PLAYER_TWO_COLOR = this.FIRST_TO_MOVE_COLOR;
+        }
+        this.CUR_PLAYER_COLOR = this.PLAYER_ONE_COLOR;
     }
 
     // Must Implement (returns a boolean)
@@ -172,17 +189,26 @@ class Othello extends AbstractGame {
 
     takeTurn(cell) {
         // Must Implement
-        // if (this.sound)
-        //     this.placePieceSFX.play();
+        if (this.sound)
+            this.placePieceSFX.play();
         if (cell != -1) {
+            let flippedPiecesSet = [];
             this.board[cell] = this.curPlayer;
+            flippedPiecesSet.push(cell);
+
             let piecesToFlip = this.possibleMoves.get(cell);
-            for (let piece of piecesToFlip)
+            for (let piece of piecesToFlip) {
                 this.board[piece] = this.curPlayer;
+                flippedPiecesSet.push(piece);
+            }
+            this.flippedPiecesHistory.push(flippedPiecesSet);
             this.drawBoardWithState();
+            this.previousMoveSkipped = false;
+        }
+        else {
+            this.previousMoveSkipped = true;
         }
 
-        // this.movesPlayed.push(cell);
 
         // Call to super to end turn
         super.endTurn();
@@ -190,13 +216,12 @@ class Othello extends AbstractGame {
         if (this.gameOver)
             return;
 
-        this.setPossibleMoves(this.curPlayer);
-        if (this.possibleMoves.size == 0)
-            if (this.previousMoveSkipped) {
+        if (this.possibleMoves.size == 0) {
+            if (this.previousMoveSkipped)
                 this.endGame();
-            }
             else
                 this.skipTurn(this.curPlayer);
+        }
         else
             this.drawPossibleMoves();
     }
@@ -214,17 +239,16 @@ class Othello extends AbstractGame {
 
     changePlayer() {
         super.changePlayer();
+        this.setPossibleMoves();
         this.CUR_PLAYER_COLOR = this.curPlayer == this.PLAYER_ONE_VAL ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR
         this.CIRCLE_COLOR = this.CUR_PLAYER_COLOR;
     }
 
-    endGame() {
-        this.setWinningPlayer();
-        super.endGame();
-    }
-
     // Must Implement
     cpuTurn() {
+        // this.setPossibleMoves();
+        let possibleMovesArray = Array.from(this.possibleMoves.keys());
+        let chosenCell = possibleMovesArray[Math.floor(Math.random() * this.possibleMoves.size)];
 
         // Super call to set move, passing in the necessary parameter to takeTurn()
         super.setCPUMove(chosenCell);
@@ -270,15 +294,15 @@ class Othello extends AbstractGame {
     startGame() {
         this.setupBoard();
         this.drawBoardWithState();
-        this.setPossibleMoves(this.curPlayer);
+        this.setPossibleMoves();
         this.drawPossibleMoves();
     }
 
-    setPossibleMoves(player) {
+    setPossibleMoves() {
         this.possibleMoves = new Map();
         for (let i = 0; i < this.board.length; i++) {
             if (this.board[i] == this.EMPTY_CELL) {
-                let flippablePieces = this.getFlippablePieces(i, player);
+                let flippablePieces = this.getFlippablePieces(i, this.curPlayer);
                 if (flippablePieces.length > 0) {
                     this.possibleMoves.set(i, flippablePieces);
                 }
@@ -458,6 +482,44 @@ class Othello extends AbstractGame {
             this.winningPlayer = -1;
         else
             this.winningPlayer = playerOneSum > playerTwoSum ? this.PLAYER_ONE_VAL : this.PLAYER_TWO_VAL;
+    }
+
+    undoMove() {
+        if (!this.gameOver && this.flippedPiecesHistory.length > 0) {
+            if (this.gameMode == this.Game_Modes.PVC) {
+                // Only undo the player's last move. If the computer starts, then there needs to be at least 2 played pieces for one of them to be the player's
+                if (this.firstMovePlayer == this.COMPUTER_VAL && this.flippedPiecesHistory.length == 1)
+                    return;
+                if (this.curPlayer == this.PLAYER_ONE_VAL) {
+                    this.revertPieces();
+                    this.revertPieces();
+                    this.setPossibleMoves();
+                }
+                else {
+                    this.revertPieces();
+                    clearTimeout(this.cpuTurnTimeoutId);
+                    this.changePlayer();
+                }
+            }
+            else {
+                this.revertPieces();
+                this.changePlayer();
+            }
+            this.drawBoardWithState();
+            this.drawPossibleMoves();
+        }
+    }
+
+    revertPieces() {
+        let lastFlippedSet = this.flippedPiecesHistory.pop();
+        let player = (this.board[lastFlippedSet[lastFlippedSet.length - 1]] + 1) % 2; // Flip the pieces back to the opposite color of what they are now
+        for (let i = 0; i < lastFlippedSet.length; i++) {
+            let piece = lastFlippedSet[i];
+            if (i == 0)
+                this.board[piece] = this.EMPTY_CELL; // Except for the first cell in the set
+            else
+                this.board[piece] = player;
+        }
     }
 
 }

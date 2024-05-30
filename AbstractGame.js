@@ -60,9 +60,9 @@ class AbstractGame {
         this.secondMovePlayer = this.PLAYER_TWO_VAL;
         this.gameOver = false;
         this.winningPlayer;
-        this.gameMode = this.Game_Modes.PVP;
+        this.gameMode = this.Game_Modes.PVC;
         this.cpuDifficulty = this.Difficulties.EASY;
-        this.cpuSpeed = this.Game_Speeds.NORMAL;
+        this.cpuSpeed = this.Game_Speeds.INSTANT;
         this.cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
         this.sound = true;
 
@@ -169,7 +169,7 @@ class AbstractGame {
             text = "Draw!";
         else
             text = 'Player ' + (this.winningPlayer + 1) + ' wins!';
-        if (this.gameMode == "pvc" && this.curPlayer == this.COMPUTER_VAL)
+        if (this.gameMode == "pvc" && this.winningPlayer == this.COMPUTER_VAL)
             text = 'Computer wins!';
         let textWidth = ctx.measureText(text).width;
         let textHeight = ctx.measureText('M').width; // cheat to get height
@@ -277,6 +277,7 @@ class AbstractGame {
             if (newFirstMovePlayer != this.firstMovePlayer)
                 resetGameFlag = true;
             this.firstMovePlayer = newFirstMovePlayer;
+            this.secondMovePlayer = (newFirstMovePlayer + 1) % 2;
         }
 
         if (validOptions.board_dimensions) {
