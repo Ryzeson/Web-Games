@@ -61,9 +61,10 @@ class AbstractGame {
         this.gameOver = false;
         this.winningPlayer;
         this.gameMode = this.Game_Modes.PVC;
-        this.cpuDifficulty = this.Difficulties.EASY;
+        this.cpuDifficulty = this.Difficulties.MEDIUM;
         this.cpuSpeed = this.Game_Speeds.INSTANT;
         this.cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
+        this.showMoves = true;
         this.sound = true;
 
         ////////////////////////////
@@ -135,7 +136,7 @@ class AbstractGame {
         ctx.closePath();
     }
 
-    resetGame() {
+    resetGame(resetGameHelper) {
         clearTimeout(this.cpuTurnTimeoutId);
         this.gameOver = false;
         this.curPlayer = this.firstMovePlayer;
@@ -150,7 +151,7 @@ class AbstractGame {
 
         this.removePlayAgainButton();
 
-        this.drawBoard();
+        resetGameHelper();
 
         if (this.gameMode == this.Game_Modes.PVC && this.firstMovePlayer == this.COMPUTER_VAL) {
             this.cpuTurn();
@@ -292,6 +293,10 @@ class AbstractGame {
 
         if (validOptions.sound)
             this.sound = this.getCheckedValue("sound") == 'on';
+
+        if (validOptions.show_moves)
+            this.showMoves = this.getCheckedValue("show_moves") == 'on';
+
 
         if (resetGameFlag) this.resetGame();
     }

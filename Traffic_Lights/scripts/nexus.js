@@ -74,12 +74,12 @@ class TrafficLights extends AbstractGame {
     }
 
     resetGame() {
-        super.resetGame();
-
-        // Must Implement
-        for (let cell in this.board) {
-            this.board[cell] = 0;
-        }
+        super.resetGame(function() {
+            for (let cell in game_object.board) {
+                game_object.board[cell] = 0;
+            }
+            game_object.drawBoard();
+        });
     }
 
     activateCell(cell) {

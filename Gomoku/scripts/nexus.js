@@ -731,7 +731,7 @@ class Gomoku extends AbstractGame {
         this.movesPlayed = [];
 
         // Call to super
-        super.resetGame();
+        super.resetGame(() => game_object.drawBoard());
     }
 
     undoMove() {

@@ -146,19 +146,22 @@ class Othello extends AbstractGame {
     }
 
     drawPossibleMoves() {
+        if (!this.showMoves)
+            return;
         for (let move of this.possibleMoves.keys()) {
             this.drawCellMini(move, this.CUR_PLAYER_COLOR + "AA");
         }
     }
 
     resetGame() {
-        super.resetGame();
+        super.resetGame(this.resetGameHelper);
+    }
 
-        // Must Implement
-        this.initEmptyBoard();
-        this.previousMoveSkipped = false;
-        this.resetPlayerColors();
-        this.startGame();
+    resetGameHelper() {
+        game_object.initEmptyBoard();
+        game_object.previousMoveSkipped = false;
+        game_object.resetPlayerColors();
+        game_object.startGame();
     }
 
     resetPlayerColors() {
@@ -171,7 +174,7 @@ class Othello extends AbstractGame {
             this.PLAYER_ONE_COLOR = this.SECOND_TO_MOVE_COLOR;
             this.PLAYER_TWO_COLOR = this.FIRST_TO_MOVE_COLOR;
         }
-        this.CUR_PLAYER_COLOR = this.PLAYER_ONE_COLOR;
+        this.CUR_PLAYER_COLOR = this.FIRST_TO_MOVE_COLOR;
     }
 
     // Must Implement (returns a boolean)
@@ -189,9 +192,9 @@ class Othello extends AbstractGame {
 
     takeTurn(cell) {
         // Must Implement
-        if (this.sound)
-            this.placePieceSFX.play();
         if (cell != -1) {
+            if (this.sound)
+                this.placePieceSFX.play();
             let flippedPiecesSet = [];
             this.board[cell] = this.curPlayer;
             flippedPiecesSet.push(cell);
@@ -220,21 +223,20 @@ class Othello extends AbstractGame {
             if (this.previousMoveSkipped)
                 this.endGame();
             else
-                this.skipTurn(this.curPlayer);
+                this.skipTurn();
         }
         else
             this.drawPossibleMoves();
     }
 
-    skipTurn(player) {
+    skipTurn() {
         $("#game-message").removeClass("invisible");
         setTimeout(() => {
             $("#game-message").addClass("invisible");
         }, this.gameMessageDuration);
 
-        setTimeout(() => {
+        if (this.curPlayer == this.PLAYER_ONE_VAL) // Computer will alreadycall takeTurn(-1) if there is no possible move
             this.takeTurn(-1);
-        }, this.skipTurnDuration);
     }
 
     changePlayer() {
@@ -246,9 +248,27 @@ class Othello extends AbstractGame {
 
     // Must Implement
     cpuTurn() {
-        // this.setPossibleMoves();
-        let possibleMovesArray = Array.from(this.possibleMoves.keys());
-        let chosenCell = possibleMovesArray[Math.floor(Math.random() * this.possibleMoves.size)];
+        const { Difficulties } = this;
+
+        let chosenCell = -1;
+        if (this.possibleMoves.size == 0) {
+            super.setCPUMove(chosenCell);
+            return;
+        }
+        switch (this.cpuDifficulty) {
+            case (Difficulties.EASY):
+                let possibleMovesArray = Array.from(this.possibleMoves.keys());
+                chosenCell = possibleMovesArray[Math.floor(Math.random() * this.possibleMoves.size)];
+                break;
+            case (Difficulties.MEDIUM):
+                let maxLength = 0;
+                for (let [key, value] of this.possibleMoves.entries()) {
+                    if (value.length > maxLength) {
+                        maxLength = value.length;
+                        chosenCell = key;
+                    }
+                }
+        }
 
         // Super call to set move, passing in the necessary parameter to takeTurn()
         super.setCPUMove(chosenCell);
@@ -520,6 +540,13 @@ class Othello extends AbstractGame {
             else
                 this.board[piece] = player;
         }
+    }
+
+    updateOptions() {
+        super.updateOptions();
+        this.drawBoardWithState();
+        if (this.showMoves)
+            this.drawPossibleMoves();
     }
 
 }
