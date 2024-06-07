@@ -45,8 +45,10 @@
                             id="options-gear"></i>
                     </div>
                     <div class="collapse" id="rules"> <!-- use 'show' to have the content displayed be default-->
-                        Be the first player to place five pieces in a row either horizontally, vertically, or
-                        diagonally.
+                        The goal of Othello is to have more pieces of your color on the board than your opponent.<br><br>
+                        Placing a piece will turn all opponent pieces in the vertical, horizontal, or diagoal line between your move and your nearest piece, into pieces of your color.
+                        You may only place a piece in a cell that will cause one of these "flips" to occur; if none are available you skip your turn.
+                        The game is over when the board is filled or neither player can make a valid move.
                         <br><br>
                         <h2 class="rules-heading">Controls</h2>
                         Click a cell to place a piece.<br>
@@ -126,12 +128,14 @@
                             <br>
                             <input type="radio" name="board_dimensions" value="12"> 12x12
                         </div>
-                        <!-- <div class="hidden" id="cpu-difficulty-section">
+                        <div class="hidden" id="cpu-difficulty-section">
                             <strong>Computer Difficulty:</strong><br>
                             <input type="radio" name="cpu_difficulty" value="easy" checked> Easy
                             <br>
-                            <input type="radio" name="cpu_difficulty" value="hard"> Hard
-                        </div> -->
+                            <input type="radio" name="cpu_difficulty" value="medium"> Medium
+                            <!-- <br>
+                            <input type="radio" name="cpu_difficulty" value="hard"> Hard -->
+                        </div>
                         <div class="hidden" id="cpu-speed-section">
                             <strong>Computer Speed:</strong><br>
                             <input type="radio" name="cpu_speed" value="1100"> Normal

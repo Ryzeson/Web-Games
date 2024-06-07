@@ -174,7 +174,6 @@ class Gomoku extends AbstractGame {
         let chosenCell = possibleMoves[randomMove];
         switch (this.cpuDifficulty) {
             case (Difficulties.EASY):
-            case (Difficulties.HARD):
                 var necessaryMove = false;
 
                 let gapPlayerMap5 = this.getNComboGap(5);

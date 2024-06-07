@@ -60,9 +60,9 @@ class AbstractGame {
         this.secondMovePlayer = this.PLAYER_TWO_VAL;
         this.gameOver = false;
         this.winningPlayer;
-        this.gameMode = this.Game_Modes.PVC;
-        this.cpuDifficulty = this.Difficulties.MEDIUM;
-        this.cpuSpeed = this.Game_Speeds.INSTANT;
+        this.gameMode = this.Game_Modes.PVP; // leave as PVP
+        this.cpuDifficulty = this.Difficulties.EASY; // leave as EASY
+        this.cpuSpeed = this.Game_Speeds.NORMAL; // leave as Normal
         this.cpuTurnTimeoutId; // while resetting the game, we need to make sure we can clear all actions in the timeout queue
         this.showMoves = true;
         this.sound = true;

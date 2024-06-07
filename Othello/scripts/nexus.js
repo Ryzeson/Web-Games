@@ -22,8 +22,7 @@ class Othello extends AbstractGame {
 
         this.placePieceSFX = new Audio("../resources/place_piece.mp3");
         this.placePieceSFX.volume = 1;
-        this.gameMessageDuration = 10000;
-        this.skipTurnDuration = 1000;
+        this.gameMessageDuration = 7000;
 
         ////////////////////////////
         //                        //
@@ -231,6 +230,11 @@ class Othello extends AbstractGame {
 
     skipTurn() {
         $("#game-message").removeClass("invisible");
+        let playerText = "Player " + (this.curPlayer + 1);
+        if (this.curPlayer == this.COMPUTER_VAL && this.gameMode == this.Game_Modes.PVC)
+            playerText = "Computer player";
+        let skipTurnText = playerText + " skipped their turn because there were no available moves!"
+        $("#game-message").text(skipTurnText);
         setTimeout(() => {
             $("#game-message").addClass("invisible");
         }, this.gameMessageDuration);
@@ -262,12 +266,19 @@ class Othello extends AbstractGame {
                 break;
             case (Difficulties.MEDIUM):
                 let maxLength = 0;
+                let possibleChoices = [];
                 for (let [key, value] of this.possibleMoves.entries()) {
                     if (value.length > maxLength) {
                         maxLength = value.length;
-                        chosenCell = key;
+                        possibleChoices = [];
+                        possibleChoices.push(key);
+                    }
+                    else if (value.length = maxLength) {
+                        possibleChoices.push(key);
                     }
                 }
+                chosenCell = possibleChoices[Math.floor(Math.random() * possibleChoices.length)];
+                break;
         }
 
         // Super call to set move, passing in the necessary parameter to takeTurn()
