@@ -105,24 +105,24 @@
                     <form id="options-form" onchange="game_object.optionsListener()">
                         <div class="hidden" id="game-mode-section">
                             <strong>Game Mode:</strong><br>
-                            <input type="radio" name="game_mode" value="pvp"> Player vs Player
+                            <input type="radio" name="game_mode" value="pvp" checked> Player vs Player
                             <br>
-                            <input type="radio" name="game_mode" value="pvc" checked> Player vs Computer
+                            <input type="radio" name="game_mode" value="pvc"> Player vs Computer
                             <br>
                         </div>
                         <div class="hidden" id="first-move-section">
-                            <strong>First Move (Black):</strong><br>
+                            <strong>First Move:</strong><br>
                             <input type="radio" name="first_move" value="0" checked> Player 1
                             <br>
                             <input type="radio" name="first_move" value="1"> Player 2 / Computer
                         </div>
                         <div class="hidden" id="board-dimensions-section">
                             <strong>Board Dimensions:</strong><br>
-                            <input type="radio" name="board_dimensions" value="4" checked> 4x4
+                            <input type="radio" name="board_dimensions" value="4"> 4x4
                             <br>
                             <input type="radio" name="board_dimensions" value="6"> 6x6
                             <br>
-                            <input type="radio" name="board_dimensions" value="8"> 8x8
+                            <input type="radio" name="board_dimensions" value="8" checked> 8x8
                             <br>
                             <input type="radio" name="board_dimensions" value="10"> 10x10
                             <br>
@@ -138,9 +138,9 @@
                         </div>
                         <div class="hidden" id="cpu-speed-section">
                             <strong>Computer Speed:</strong><br>
-                            <input type="radio" name="cpu_speed" value="1100"> Normal
+                            <input type="radio" name="cpu_speed" value="1100" checked> Normal
                             <br>
-                            <input type="radio" name="cpu_speed" value="0" checked> Instant
+                            <input type="radio" name="cpu_speed" value="0"> Instant
                         </div>
                         <div class="hidden" id="show-moves-section">
                             <strong>Show possible moves:</strong><br>
@@ -153,6 +153,27 @@
                             <input type="radio" name="sound" value="on" checked> On
                             <br>
                             <input type="radio" name="sound" value="off"> Off
+                        </div>
+                        <div id="color-section">
+                            <strong>Colors</strong><br>
+                            Board: <input type="color" id="boardColor" name="color" value="#008000">
+                            <br>
+                            Player 1: <input type="color" id="playerOneColor" name="color" value="#000000">
+                            <br>
+                            Player 2 / Computer: <input type="color" id="playerTwoColor" name="color" value="#FFFFFF">
+                        </div>
+                        <div id="color-suggestions">
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#008000'], ['playerOneColor', '#000000'], ['playerTwoColor', '#FFFFFF']]))">Classic</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#E9E9E9'], ['playerOneColor', '#8AD1F5'], ['playerTwoColor', '#FB9898']]))">Cotton candy</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#000000'], ['playerOneColor', '#FFF157'], ['playerTwoColor', '#FFFFFF']]))">Light it up</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#575658'], ['playerOneColor', '#BFDB8A'], ['playerTwoColor', '#A23DE6']]))">Muted Barney</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#000000'], ['playerOneColor', '#FD0100'], ['playerTwoColor', '#FF55EB']]))">Darkroom</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#261000'], ['playerOneColor', '#FEE4B6'], ['playerTwoColor', '#A67419']]))">Sepia</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#FFFFFF'], ['playerOneColor', '#000000'], ['playerTwoColor', '#A39E9E']]))">Steamboat</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#C8D0EE'], ['playerOneColor', '#3485EF'], ['playerTwoColor', '#01487E']]))">Under the sea</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#EBC400'], ['playerOneColor', '#F02D2D'], ['playerTwoColor', '#F561B0']]))">Sunset</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#0B3354'], ['playerOneColor', '#FFFFFF'], ['playerTwoColor', '#7C67D9']]))">Inversion</button>
+                            <button class="color-suggestion-button" type="button" onclick="game_object.setColorValues(new Map([['boardColor', '#000000'], ['playerOneColor', '#FFFFFF'], ['playerTwoColor', '#FFFFFF']]))">Memory</button>
                         </div>
                     </form>
                     <h2 class="options-warning invisible">Changing these options will reset your current game!</h2>

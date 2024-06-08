@@ -10,13 +10,15 @@ class Othello extends AbstractGame {
         //////////////////////////
         this.EMPTY_CELL = -1;
 
-        this.nRows = 4;
-        this.nCols = 4;
+        this.nRows = 8;
+        this.nCols = 8;
 
         this.initEmptyBoard();
 
         this.possibleMoves;
         this.previousMoveSkipped = false;
+        this.playerOneScore = 0;
+        this.playerTwoScore = 0;
 
         this.flippedPiecesHistory = [];
 
@@ -34,13 +36,14 @@ class Othello extends AbstractGame {
 
         this.FIRST_TO_MOVE_COLOR = "#000000";
         this.SECOND_TO_MOVE_COLOR = "#FFFFFF";
+        this.BOARD_COLOR = "#008000";
+        this.BOARD_MARKER_COLOR = "#00000088"; //https://www.digitalocean.com/community/tutorials/css-hex-code-colors-alpha-values
 
         this.PLAYER_ONE_COLOR = this.FIRST_TO_MOVE_COLOR;
         this.PLAYER_TWO_COLOR = this.SECOND_TO_MOVE_COLOR;
         this.CUR_PLAYER_COLOR = this.PLAYER_ONE_COLOR;
         this.CIRCLE_COLOR = this.FIRST_TO_MOVE_COLOR;
-        this.BOARD_COLOR = "green";
-        this.BOARD_MARKER_COLOR = "#00000088"; //https://www.digitalocean.com/community/tutorials/css-hex-code-colors-alpha-values
+
 
     }
 
@@ -70,15 +73,15 @@ class Othello extends AbstractGame {
         for (let i = 1; i < nRows; i++)
             super.drawLine(0, (cHeight / nRows) * i, cWidth, (cHeight / nRows) * i, LINE_COLOR, 2);
 
-        for (let cell in this.board) {
-            var cellRow = Math.floor(cell / this.nCols);
-            var cellCol = cell % this.nCols;
-            var textX = (cellCol * cellWidth) + 2;
-            var textY = (cellRow * cellHeight) + 20;
-            this.ctx.fillStyle = "black";
-            this.ctx.font = "20px sans-serif";
-            this.ctx.fillText(cell, textX, textY);
-        };
+        // for (let cell in this.board) {
+        //     var cellRow = Math.floor(cell / this.nCols);
+        //     var cellCol = cell % this.nCols;
+        //     var textX = (cellCol * cellWidth) + 2;
+        //     var textY = (cellRow * cellHeight) + 20;
+        //     this.ctx.fillStyle = "black";
+        //     this.ctx.font = "20px sans-serif";
+        //     this.ctx.fillText(cell, textX, textY);
+        // };
 
         // Draw board markers
         // if (this.nRows >= 9 && this.nCols >= 9) {
@@ -156,10 +159,16 @@ class Othello extends AbstractGame {
         super.resetGame(this.resetGameHelper);
     }
 
+    // Should contain any logic that needs executed before the computer player would make their move, if they move first
+    // Passed as a callback to resetGame()
     resetGameHelper() {
         game_object.initEmptyBoard();
         game_object.previousMoveSkipped = false;
+        game_object.flippedPiecesHistory = [];
+        game_object.playerOneScore = 0;
+        game_object.playerTwoScore = 0;
         game_object.resetPlayerColors();
+        game_object.resetScores();
         game_object.startGame();
     }
 
@@ -239,14 +248,14 @@ class Othello extends AbstractGame {
             $("#game-message").addClass("invisible");
         }, this.gameMessageDuration);
 
-        if (this.curPlayer == this.PLAYER_ONE_VAL) // Computer will alreadycall takeTurn(-1) if there is no possible move
+        if (this.curPlayer == this.PLAYER_ONE_VAL || this.gameMode == this.Game_Modes.PVP) // Computer will already call takeTurn(-1) if there is no possible move
             this.takeTurn(-1);
     }
 
     changePlayer() {
         super.changePlayer();
         this.setPossibleMoves();
-        this.CUR_PLAYER_COLOR = this.curPlayer == this.PLAYER_ONE_VAL ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR
+        this.updateCurrentPlayerColor();
         this.CIRCLE_COLOR = this.CUR_PLAYER_COLOR;
     }
 
@@ -263,6 +272,7 @@ class Othello extends AbstractGame {
             case (Difficulties.EASY):
                 let possibleMovesArray = Array.from(this.possibleMoves.keys());
                 chosenCell = possibleMovesArray[Math.floor(Math.random() * this.possibleMoves.size)];
+                // chosenCell = possibleMovesArray[0]; // for testing
                 break;
             case (Difficulties.MEDIUM):
                 let maxLength = 0;
@@ -290,6 +300,29 @@ class Othello extends AbstractGame {
         var cell = this.getCell(clickX, clickY);
         if (this.board[cell] == this.EMPTY_CELL && this.possibleMoves.has(cell))
             this.takeTurn(cell);
+    }
+
+    endGame() {
+        super.endGame();
+        this.displayScores();
+    }
+
+    displayScores() {
+        var playerOneText = $("#p1-label").text();
+        $("#p1-label").text(playerOneText + ": " + this.playerOneScore);
+
+        var playerTwoText = $("#p2-label").text();
+        $("#p2-label").text(playerTwoText + ": " + this.playerTwoScore);
+    }
+
+    resetScores() {
+        $("#p1-label").text("Player 1");
+        let playerTwoLabel;
+        if (this.gameMode == this.Game_Modes.PVP)
+            playerTwoLabel = "Player 2";
+        else
+            playerTwoLabel = "Computer";
+        $("#p2-label").text(playerTwoLabel);
     }
 
 
@@ -509,6 +542,8 @@ class Othello extends AbstractGame {
             else if (this.board[i] == this.PLAYER_TWO_VAL)
                 playerTwoSum++;
         }
+        this.playerOneScore = playerOneSum;
+        this.playerTwoScore = playerTwoSum;
         if (playerOneSum == playerTwoSum)
             this.winningPlayer = -1;
         else
@@ -558,6 +593,32 @@ class Othello extends AbstractGame {
         this.drawBoardWithState();
         if (this.showMoves)
             this.drawPossibleMoves();
+    }
+
+    setColors(colors) {
+        for (let [key, value] of colors.entries()) {
+            if (key == "boardColor")
+                this.BOARD_COLOR = value;
+            else if (key == "playerOneColor") {
+                this.FIRST_TO_MOVE_COLOR = value;
+                this.PLAYER_ONE_COLOR = value;
+            }
+            else if (key == "playerTwoColor") {
+                this.SECOND_TO_MOVE_COLOR = value;
+                this.PLAYER_TWO_COLOR = value;
+            }
+        }
+        this.updateCurrentPlayerColor();
+        this.updateBoardWithColors();
+    }
+
+    updateBoardWithColors() {
+        this.drawBoardWithState();
+        this.drawPossibleMoves();
+    }
+
+    updateCurrentPlayerColor() {
+        this.CUR_PLAYER_COLOR = this.curPlayer == this.PLAYER_ONE_VAL ? this.PLAYER_ONE_COLOR : this.PLAYER_TWO_COLOR;
     }
 
 }

@@ -297,6 +297,12 @@ class AbstractGame {
         if (validOptions.show_moves)
             this.showMoves = this.getCheckedValue("show_moves") == 'on';
 
+        if (validOptions.color) {
+            let colors = this.getSelectedColors("color");
+            console.log(colors);
+            this.setColors(colors);
+        }
+
 
         if (resetGameFlag) this.resetGame();
     }
@@ -332,6 +338,24 @@ class AbstractGame {
             }
         })
         return checkedValue;
+    }
+
+    getSelectedColors(groupName) {
+        var form = $("#options-form")[0];
+        var inputs = [...form.elements[groupName]];
+        var colors = new Map();
+        inputs.forEach(input => {
+            colors.set(input.id, input.value);
+        })
+        return colors;
+    }
+
+    setColorValues(colors) {
+        var form = $("#options-form")[0];
+        var inputs = [...form.elements["color"]];
+        inputs.forEach(input => {
+            input.value = colors.get(input.id);
+        })
     }
 
     updatePlayerLabels() {
